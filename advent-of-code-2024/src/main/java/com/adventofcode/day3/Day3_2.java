@@ -28,7 +28,9 @@ public class Day3_2 {
                     char ch = line.charAt(index);
                     Character stackChar = stack.peekLast();
                     Character instChar = instStack.peekLast();
-                    System.out.println("%s -> %s ---> %s ---> %s | %s | %s | %d".formatted(Character.toString(ch), instStack, stack, x, y, enabled, total));
+                    System.out.println(
+                            "%s -> %s ---> %s ---> %s | %s | %s | %d".formatted(Character.toString(ch), instStack,
+                                    stack, x, y, enabled, total));
                     if (ch == 'm') {
                         reset(stack, x, y);
                         resetInst(instStack);
@@ -47,7 +49,7 @@ public class Day3_2 {
                         if (isSequelTo(stackChar, ',')) {
                             total += multiply(x, y, enabled);
                         } else {
-                            enabled = handleCloseBracket(instChar, instStack, ch, enabled);
+                            enabled = handleCloseBracket(ch, instChar, instStack, enabled);
                         }
                         resetInst(instStack);
                         reset(stack, x, y);
@@ -72,9 +74,9 @@ public class Day3_2 {
         System.out.println(total);
     }
 
-    private static void handleInstruction(char ch, char pre, Character instChar, Deque<Character> instStack, Deque<Character> stack,
-            StringBuilder x, StringBuilder y) {
-        if(isSequelTo(instChar, pre)) {
+    private static void handleInstruction(char ch, char pre, Character instChar, Deque<Character> instStack,
+            Deque<Character> stack, StringBuilder x, StringBuilder y) {
+        if (isSequelTo(instChar, pre)) {
             instStack.add(ch);
         } else {
             resetInst(instStack);
@@ -95,8 +97,7 @@ public class Day3_2 {
     }
 
     private static void handleSymbol(char ch, char pre, Character stackChar, Deque<Character> stack,
-            Deque<Character> instStack, StringBuilder x,
-            StringBuilder y) {
+            Deque<Character> instStack, StringBuilder x, StringBuilder y) {
         if (isSequelTo(stackChar, pre)) {
             stack.add(ch);
         } else {
@@ -105,10 +106,10 @@ public class Day3_2 {
         resetInst(instStack);
     }
 
-    private static boolean handleCloseBracket(Character instChar, Deque<Character> instStack, char ch, boolean enabled) {
-        if(isSequelTo(instChar, '(')) {
+    private static boolean handleCloseBracket(char ch, Character instChar, Deque<Character> instStack, boolean enabled) {
+        if (isSequelTo(instChar, '(')) {
             instStack.add(ch);
-            if(instStack.size() == 4) {
+            if (instStack.size() == 4) {
                 enabled = true;
             } else if (instStack.size() == 7) {
                 enabled = false;
@@ -126,7 +127,7 @@ public class Day3_2 {
             stack.add(ch);
             resetInst(instStack);
         } else {
-            if(isSequelTo(instChar, 'o') || isSequelTo(instChar, 't')) {
+            if (isSequelTo(instChar, 'o') || isSequelTo(instChar, 't')) {
                 instStack.add(ch);
             } else {
                 resetInst(instStack);
