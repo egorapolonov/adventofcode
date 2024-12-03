@@ -14,26 +14,25 @@ public class Day3_2 {
     }
 
     protected void mullItOver() throws Exception {
+        // 89912299 - wrong answer | 87163705 - correct one
         int total = 0;
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day3_2.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day3_1.txt")))) {
             String line = null;
+            boolean enabled = true;
             while ((line = br.readLine()) != null) {
                 Deque<Character> stack = new LinkedList<>();
                 Deque<Character> instStack = new LinkedList<>();
-                boolean enabled = true;
                 StringBuilder x = new StringBuilder();
                 StringBuilder y = new StringBuilder();
                 for (int index = 0; index < line.length(); index++) {
                     char ch = line.charAt(index);
                     Character stackChar = stack.peekLast();
                     Character instChar = instStack.peekLast();
-                    System.out.println(
-                            "%s -> %s ---> %s ---> %s | %s | %s | %d".formatted(Character.toString(ch), instStack,
-                                    stack, x, y, enabled, total));
+                    System.out.printf("%s -> %s ---> %s ---> %s | %s | %s | %d%n", ch, instStack, stack, x, y, enabled,
+                            total);
                     if (ch == 'm') {
-                        reset(stack, x, y);
-                        resetInst(instStack);
+                        fullReset(stack, instStack, x, y);
                         stack.add(ch);
                     } else if (ch == 'u') {
                         handleSymbol(ch, 'm', stackChar, stack, instStack, x, y);
@@ -46,16 +45,13 @@ public class Day3_2 {
                     } else if (Character.isDigit(ch)) {
                         handleDigit(ch, stackChar, stack, instStack, x, y);
                     } else if (ch == ')') {
-                        if (isSequelTo(stackChar, ',')) {
-                            total += multiply(x, y, enabled);
+                        if (isEqualTo(stackChar, ',')) {
+                            total += multiply(stack, instStack, x, y, enabled);
                         } else {
-                            enabled = handleCloseBracket(ch, instChar, instStack, enabled);
+                            enabled = handleCloseBracket(ch, instChar, instStack, stack, x, y, enabled);
                         }
-                        resetInst(instStack);
-                        reset(stack, x, y);
                     } else if (ch == 'd') {
-                        resetInst(instStack);
-                        reset(stack, x, y);
+                        fullReset(stack, instStack, x, y);
                         instStack.add(ch);
                     } else if (ch == 'o') {
                         handleInstruction(ch, 'd', instChar, instStack, stack, x, y);
@@ -66,7 +62,7 @@ public class Day3_2 {
                     } else if (ch == 't') {
                         handleInstruction(ch, '\'', instChar, instStack, stack, x, y);
                     } else {
-                        reset(stack, x, y);
+                        fullReset(stack, instStack, x, y);
                     }
                 }
             }
@@ -74,21 +70,27 @@ public class Day3_2 {
         System.out.println(total);
     }
 
+    private static void fullReset(Deque<Character> stack, Deque<Character> instStack, StringBuilder x,
+            StringBuilder y) {
+        reset(stack, x, y);
+        resetInst(instStack);
+    }
+
     private static void handleInstruction(char ch, char pre, Character instChar, Deque<Character> instStack,
             Deque<Character> stack, StringBuilder x, StringBuilder y) {
-        if (isSequelTo(instChar, pre)) {
+        if (isEqualTo(instChar, pre)) {
             instStack.add(ch);
         } else {
             resetInst(instStack);
-            reset(stack, x, y);
         }
+        reset(stack, x, y);
     }
 
     private static void handleDigit(char ch, Character stackChar, Deque<Character> stack, Deque<Character> instStack,
             StringBuilder x, StringBuilder y) {
-        if (isSequelTo(stackChar, '(')) {
+        if (isEqualTo(stackChar, '(')) {
             x.append(ch);
-        } else if (isSequelTo(stackChar, ',')) {
+        } else if (isEqualTo(stackChar, ',')) {
             y.append(ch);
         } else {
             reset(stack, x, y);
@@ -98,7 +100,7 @@ public class Day3_2 {
 
     private static void handleSymbol(char ch, char pre, Character stackChar, Deque<Character> stack,
             Deque<Character> instStack, StringBuilder x, StringBuilder y) {
-        if (isSequelTo(stackChar, pre)) {
+        if (isEqualTo(stackChar, pre)) {
             stack.add(ch);
         } else {
             reset(stack, x, y);
@@ -106,28 +108,29 @@ public class Day3_2 {
         resetInst(instStack);
     }
 
-    private static boolean handleCloseBracket(char ch, Character instChar, Deque<Character> instStack, boolean enabled) {
-        if (isSequelTo(instChar, '(')) {
+    private static boolean handleCloseBracket(char ch, Character instChar, Deque<Character> instStack,
+            Deque<Character> stack, StringBuilder x, StringBuilder y, boolean enabled) {
+        if (isEqualTo(instChar, '(')) {
             instStack.add(ch);
             if (instStack.size() == 4) {
                 enabled = true;
+                System.out.printf("enabled : %s", enabled);
             } else if (instStack.size() == 7) {
                 enabled = false;
+                System.out.printf("disabled : %s", enabled);
             }
-            resetInst(instStack);
-        } else {
-            resetInst(instStack);
         }
+        fullReset(stack, instStack, x, y);
         return enabled;
     }
 
     private static void handleOpenBracket(char ch, Character stackChar, Deque<Character> stack, Character instChar,
             Deque<Character> instStack, StringBuilder x, StringBuilder y) {
-        if (isSequelTo(stackChar, 'l')) {
+        if (isEqualTo(stackChar, 'l')) {
             stack.add(ch);
             resetInst(instStack);
         } else {
-            if (isSequelTo(instChar, 'o') || isSequelTo(instChar, 't')) {
+            if (isEqualTo(instChar, 'o') || isEqualTo(instChar, 't')) {
                 instStack.add(ch);
             } else {
                 resetInst(instStack);
@@ -136,16 +139,19 @@ public class Day3_2 {
         }
     }
 
-    private static int multiply(StringBuilder x, StringBuilder y, boolean enabled) {
+    private static int multiply(Deque<Character> stack, Deque<Character> instStack, StringBuilder x, StringBuilder y,
+            boolean enabled) {
         if (enabled && !x.isEmpty() && !y.isEmpty()) {
             int xVal = Integer.parseInt(x.toString());
             int yVal = Integer.parseInt(y.toString());
+            fullReset(stack, instStack, x, y);
             return xVal * yVal;
         }
+        fullReset(stack, instStack, x, y);
         return 0;
     }
 
-    private static boolean isSequelTo(Character stackChar, char ch) {
+    private static boolean isEqualTo(Character stackChar, char ch) {
         return stackChar != null && stackChar.equals(ch);
     }
 
