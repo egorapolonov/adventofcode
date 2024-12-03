@@ -1,12 +1,13 @@
 package com.adventofcode.day1;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.adventofcode.utils.FileUtils;
 
 public class Day1_2 {
 
@@ -31,17 +32,10 @@ public class Day1_2 {
     }
 
     private static List<Integer> initArray(int columnIndex) throws Exception {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(getFileAsIOStream("day1_1.txt")))) {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day1_1.txt")))) {
             return new ArrayList<>(
                     br.lines().map(line -> Integer.parseInt(line.split(DELIMITER)[columnIndex])).toList());
         }
-    }
-
-    private static InputStream getFileAsIOStream(final String fileName) {
-        InputStream ioStream = Day1_2.class.getClassLoader().getResourceAsStream(fileName);
-        if (ioStream == null) {
-            throw new IllegalArgumentException(fileName + " is not found");
-        }
-        return ioStream;
     }
 }
