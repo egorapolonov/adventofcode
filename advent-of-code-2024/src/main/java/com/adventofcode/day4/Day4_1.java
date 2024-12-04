@@ -3,23 +3,39 @@ package com.adventofcode.day4;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
+import java.util.Set;
 
 import com.adventofcode.utils.FileUtils;
 
 public class Day4_1 {
 
-    private static final int SIDE = 4;
-    private static final int HASH = 4;
-    private static final String XMAS = "XMAS";
-    private static final String SAMX = "SAMX";
+    protected final int SIDE;
+    protected final boolean countHorizontal;
+    protected final boolean countVertical;
+    protected final boolean countDiagonals;
+    protected final Set<String> WORDS;
+    protected final LinkedList<String> linesCache;
+    protected boolean lastLineOnly = false;
+    protected boolean lastBarOnly = false;
 
-    private LinkedList<String> linesCache = new LinkedList<>();
+    public Day4_1() {
+        this(4, true, true, true, "XMAS", "SAMX");
+    }
+
+    public Day4_1(int side, boolean countHorizontal, boolean countVertical, boolean countDiagonals, String... words) {
+        this.SIDE = side;
+        this.countHorizontal = countHorizontal;
+        this.countVertical = countVertical;
+        this.countDiagonals = countDiagonals;
+        this.WORDS = Set.of(words);
+        this.linesCache = new LinkedList<>();
+    }
 
     public static void main(String[] args) throws Exception {
         new Day4_1().count();
     }
 
-    private void count() throws Exception {
+    public void count() throws Exception {
         // 2578 correct answer
         try (BufferedReader br = new BufferedReader(
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day4_1_tmp_short.txt")))) {
@@ -39,8 +55,10 @@ public class Day4_1 {
                     for (int xOffset = 0; xOffset <= linesCache.peek().length() - SIDE; xOffset++) {
                         Character[][] frame = loadFrame(xOffset);
                         printFrame(frame);
+                        lastLineOnly = countLastLineOnly(linesCounter);
+                        lastBarOnly = countLastBarOnly(xOffset);
                         //System.out.printf("frame : %s\n", Arrays.deepToString(frame));
-                        counter += countFrame(frame, linesCounter > SIDE, xOffset > 0);
+                        counter += countFrame(frame);
                         //System.out.println(counter);
                     }
                 }
@@ -49,7 +67,15 @@ public class Day4_1 {
         }
     }
 
-    private void printFrame(Character[][] frame) {
+    protected boolean countLastBarOnly(int xOffset) {
+        return xOffset > 0;
+    }
+
+    protected boolean countLastLineOnly(int linesCounter) {
+        return linesCounter > SIDE;
+    }
+
+    protected void printFrame(Character[][] frame) {
         StringBuilder sb = new StringBuilder();
         StringBuilder rsb = new StringBuilder();
         rsb.append("(");
@@ -68,7 +94,7 @@ public class Day4_1 {
         System.out.println(rsb); // regex for search frame for debug in txt document. For example, (SMMS|MXMA|XAAM|SXSX)
     }
 
-    private Character[][] loadFrame(int xOffset) {
+    protected Character[][] loadFrame(int xOffset) {
         Character[][] frame = new Character[SIDE][SIDE];
         int lineIndex = 0;
         for (String line : linesCache) {
@@ -80,8 +106,8 @@ public class Day4_1 {
         return frame;
     }
 
-    private int countFrame(Character[][] frame, boolean lastLine, boolean lastBar) {
-        System.out.printf("ll : %s, leftDiagonal : %s\n", lastLine, lastBar);
+    protected int countFrame(Character[][] frame) {
+        System.out.printf("ll : %s, leftDiagonal : %s\n", lastLineOnly, lastBarOnly);
         int counter = 0;
         StringBuilder leftDiagonal = new StringBuilder();
         StringBuilder rightDiagonal = new StringBuilder();
@@ -89,19 +115,23 @@ public class Day4_1 {
             StringBuilder horizontal = new StringBuilder();
             StringBuilder vertical = new StringBuilder();
             for (int y = 0; y < SIDE; y++) {
-                if (lastLine) {
-                    if (isLast(x)) {
+                if(countHorizontal) {
+                    if (lastLineOnly) {
+                        if (isLast(x)) {
+                            horizontal.append(frame[x][y]);
+                        }
+                    } else {
                         horizontal.append(frame[x][y]);
                     }
-                } else {
-                    horizontal.append(frame[x][y]);
                 }
-                if (lastBar) {
-                    if (isLast(x)) {
+                if(countVertical) {
+                    if (lastBarOnly) {
+                        if (isLast(x)) {
+                            vertical.append(frame[y][x]); //reverse XY
+                        }
+                    } else {
                         vertical.append(frame[y][x]); //reverse XY
                     }
-                } else {
-                    vertical.append(frame[y][x]); //reverse XY
                 }
                 if (isLeftDiagonalPoint(x, y)) {
                     leftDiagonal.append(frame[x][y]);
@@ -132,20 +162,20 @@ public class Day4_1 {
         return counter;
     }
 
-    private static boolean isRightDiagonalPoint(int x, int y) {
+    protected boolean isRightDiagonalPoint(int x, int y) {
         return x == SIDE - y - 1;
     }
 
-    private static boolean isLeftDiagonalPoint(int x, int y) {
+    protected boolean isLeftDiagonalPoint(int x, int y) {
         return x == y;
     }
 
-    private static boolean isLast(int x) {
+    protected boolean isLast(int x) {
         return x == SIDE - 1;
     }
 
-    private boolean isValid(StringBuilder sb) {
+    protected boolean isValid(StringBuilder sb) {
         String value = sb.toString();
-        return XMAS.equals(value) || SAMX.equals(value);
+        return WORDS.contains(value);
     }
 }
