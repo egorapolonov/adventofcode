@@ -2,10 +2,7 @@ package com.adventofcode.day4;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Deque;
-import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Set;
 
 import com.adventofcode.utils.FileUtils;
 
@@ -23,9 +20,11 @@ public class Day4_1 {
     }
 
     private void count() throws Exception {
+        // 2578 correct answer
         try (BufferedReader br = new BufferedReader(
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day4_1_tmp_short.txt")))) {
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day4_1_tmp.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day4_1_tmp.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day4_1.txt")))) {
             String line;
             int counter = 0;
             int linesCounter = 0;
@@ -66,7 +65,7 @@ public class Day4_1 {
         }
         rsb.append(")");
         System.out.println(sb);
-        System.out.println(rsb);
+        System.out.println(rsb); // regex for search frame for debug in txt document. For example, (SMMS|MXMA|XAAM|SXSX)
     }
 
     private Character[][] loadFrame(int xOffset) {
@@ -82,101 +81,71 @@ public class Day4_1 {
     }
 
     private int countFrame(Character[][] frame, boolean lastLine, boolean lastBar) {
-        System.out.printf("ll : %s, lb : %s\n", lastLine, lastBar);
+        System.out.printf("ll : %s, leftDiagonal : %s\n", lastLine, lastBar);
         int counter = 0;
-        Deque<Character> leftDiagonalValidator = new LinkedList<>();
-        Deque<Character> rightDiagonalValidator = new LinkedList<>();
-        StringBuilder lb = new StringBuilder();
-        StringBuilder rb = new StringBuilder();
+        StringBuilder leftDiagonal = new StringBuilder();
+        StringBuilder rightDiagonal = new StringBuilder();
         for (int x = 0; x < SIDE; x++) {
-            Deque<Character> horizontalValidator = new LinkedList<>();
-            Deque<Character> verticalValidator = new LinkedList<>();
-            StringBuilder hb = new StringBuilder();
-            StringBuilder yb = new StringBuilder();
+            StringBuilder horizontal = new StringBuilder();
+            StringBuilder vertical = new StringBuilder();
             for (int y = 0; y < SIDE; y++) {
-                /*if(lastLine) {
-                     if(x == SIDE - 1) {
-                         pushIfValid(horizontalValidator, frame[x][y]);
-                         hb.append(frame[x][y]);
-                     }
-                } else {
-                    pushIfValid(horizontalValidator, frame[x][y]);
-                    hb.append(frame[x][y]);
-                }
-                if(lastBar) {
-                    if( x == SIDE - 1){
-                        pushIfValid(verticalValidator, frame[y][x]);
-                        yb.append(frame[y][x]);
-                        yb.append("\n");
+                if (lastLine) {
+                    if (isLast(x)) {
+                        horizontal.append(frame[x][y]);
                     }
                 } else {
-                    pushIfValid(verticalValidator, frame[y][x]);
-                    yb.append(frame[y][x]);
-                    yb.append("\n");
-                }*/
-                if (x == y) {
-                    pushIfValid(leftDiagonalValidator, frame[x][y]);
-                    lb.append(frame[x][y]);
+                    horizontal.append(frame[x][y]);
                 }
-                if (x == SIDE - y - 1) {
-                    pushIfValid(rightDiagonalValidator, frame[x][y]);
-                    rb.append(frame[x][y]);
+                if (lastBar) {
+                    if (isLast(x)) {
+                        vertical.append(frame[y][x]); //reverse XY
+                    }
+                } else {
+                    vertical.append(frame[y][x]); //reverse XY
+                }
+                if (isLeftDiagonalPoint(x, y)) {
+                    leftDiagonal.append(frame[x][y]);
+                }
+                if (isRightDiagonalPoint(x, y)) {
+                    rightDiagonal.append(frame[x][y]);
                 }
             }
-            if (horizontalValidator.size() == HASH) {
+            if (isValid(horizontal)) {
                 counter++;
-                System.out.printf("h : %s\n", hb);
+                System.out.printf("h : %s\n", horizontal);
             }
-            hb.setLength(0);
-            horizontalValidator.clear();
-            if (verticalValidator.size() == HASH) {
+            horizontal.setLength(0);
+            if (isValid(vertical)) {
                 counter++;
-                System.out.printf("v : %s\n", yb);
+                System.out.printf("v : %s\n", vertical);
             }
-            System.out.printf("v : %s\n", yb);
-            verticalValidator.clear();
-            yb.setLength(0);
+            vertical.setLength(0);
         }
-        if (leftDiagonalValidator.size() == HASH) {
-            System.out.printf("l++ : %s\n", lb);
+        if (isValid(leftDiagonal)) {
+            System.out.printf("l : %s\n", leftDiagonal);
             counter++;
         }
-        System.out.printf("l : %s\n", lb);
-        if (rightDiagonalValidator.size() == HASH) {
-            System.out.printf("r++ : %s\n", rb);
+        if (isValid(rightDiagonal)) {
+            System.out.printf("r : %s\n", rightDiagonal);
             counter++;
         }
-        System.out.printf("r : %s\n", rb);
         return counter;
     }
 
-    private void pushIfValid(Deque<Character> validator, Character ch) {
-        switch (ch) {
-            case 'X': {
-                if(validator.isEmpty() || 'M' == validator.peekLast()) {
-                    validator.add(ch);
-                }
-            }
-            case 'M' : {
-                if(!validator.isEmpty() && ('A' == validator.peekLast() || 'X' == validator.peekLast())) {
-                    validator.add(ch);
-                }
-            }
-            case 'A' : {
-                if(!validator.isEmpty() && ('S' == validator.peekLast() || 'M' ==validator.peekLast())) {
-                    validator.add(ch);
-                }
-            }
-            case 'S' : {
-                if(validator.isEmpty() || 'A' ==validator.peekLast()) {
-                    validator.add(ch);
-                }
-            }
-        }
+    private static boolean isRightDiagonalPoint(int x, int y) {
+        return x == SIDE - y - 1;
+    }
+
+    private static boolean isLeftDiagonalPoint(int x, int y) {
+        return x == y;
+    }
+
+    private static boolean isLast(int x) {
+        return x == SIDE - 1;
     }
 
     private boolean isValid(StringBuilder sb) {
         String value = sb.toString();
-        return XMAS.equals(value) ||  SAMX.equals(value);
+        return XMAS.equals(value) || SAMX.equals(value);
     }
 }
