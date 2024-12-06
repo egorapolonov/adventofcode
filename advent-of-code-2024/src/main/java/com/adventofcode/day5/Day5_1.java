@@ -55,7 +55,7 @@ public class Day5_1 {
         }
     }
 
-    private static class Rule {
+    protected static class Rule {
         int page;
         int before;
 
@@ -75,7 +75,7 @@ public class Day5_1 {
         }
     }
 
-    private static Map<Integer, Set<Integer>> loadRulesMap(List<Rule> rules) {
+    protected static Map<Integer, Set<Integer>> loadRulesMap(List<Rule> rules) {
         Map<Integer, Set<Integer>> rulesMap = new HashMap<>();
         for (Rule rule : rules) {
             rulesMap.computeIfAbsent(rule.page, k -> new HashSet<>()).add(rule.before);
@@ -83,7 +83,7 @@ public class Day5_1 {
         return rulesMap;
     }
 
-    private static class Update {
+    protected static class Update {
 
         List<Integer> pages;
 
@@ -97,7 +97,7 @@ public class Day5_1 {
         }
     }
 
-    private List<Rule> loadRules(BufferedReader br) throws Exception {
+    protected List<Rule> loadRules(BufferedReader br) throws Exception {
         List<Rule> retVal = new ArrayList<>();
         String ruleLine = null;
         while ((ruleLine = br.readLine()) != null && ruleLine.length() != 0) {
@@ -108,7 +108,7 @@ public class Day5_1 {
         return retVal;
     }
 
-    private List<Update> loadUpdates(BufferedReader br) throws Exception {
+    protected List<Update> loadUpdates(BufferedReader br) throws Exception {
         List<Update> retVal = new ArrayList<>();
         String updateLine = null;
         while ((updateLine = br.readLine()) != null) {

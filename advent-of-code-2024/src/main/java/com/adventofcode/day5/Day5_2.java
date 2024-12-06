@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import com.adventofcode.utils.FileUtils;
 
-public class Day5_2 {
+public class Day5_2 extends Day5_1 {
 
     public static void main(String[] args) throws Exception {
         new Day5_2().count();
@@ -38,19 +38,14 @@ public class Day5_2 {
                 for (int index = update.pages.size() - 1; index > 0; index--) {
                     Integer last = update.pages.get(index);
                     Integer previous = update.pages.get(index - 1);
-                    if(fixed) {
-                        System.out.printf("\npair = [%d,%d]\n", previous, last);
-                    }
                     Set<Integer> befores = rulesMap.get(previous);
                     if (befores == null || !befores.contains(last)) {
                         Set<Integer> potentialBefores = reverseRulesMap.get(last);
                         Integer substitution = update.pages.stream().filter(potentialBefores::contains).findFirst().orElse(null);
                         if(substitution != null) {
-                            System.out.println("Initial : " + update.pages);
                             System.out.printf("Substitution %d by %d\n", last, substitution);
                             update.pages.remove(substitution); // remove original position of substitution. O(n)
                             update.pages.add(index, substitution); // add substitution right here in the middle. O(n) because of copying
-                            System.out.printf("Update at %d : %s\n", index, update.pages);
                             index = update.pages.size(); // reset index, because replacement could be at the end of the array
                             fixed = true;
                         } else {
@@ -74,76 +69,12 @@ public class Day5_2 {
         }
     }
 
-    private static class Rule {
-        int page;
-        int before;
-
-        public Rule(int page, int before) {
-            this.page = page;
-            this.before = before;
-        }
-
-        public Rule(String page, String before) {
-            this.page = Integer.parseInt(page);
-            this.before = Integer.parseInt(before);
-        }
-
-        @Override
-        public String toString() {
-            return "%d|%d".formatted(page, before);
-        }
-    }
-
-    private static Map<Integer, Set<Integer>> loadRulesMap(List<Rule> rules) {
-        Map<Integer, Set<Integer>> rulesMap = new HashMap<>();
-        for (Rule rule : rules) {
-            rulesMap.computeIfAbsent(rule.page, k -> new HashSet<>()).add(rule.before);
-        }
-        return rulesMap;
-    }
-
     private static Map<Integer, Set<Integer>> loadReverseRulesMap(List<Rule> rules) {
         Map<Integer, Set<Integer>> rulesMap = new HashMap<>();
         for (Rule rule : rules) {
             rulesMap.computeIfAbsent(rule.before, k -> new HashSet<>()).add(rule.page);
         }
         return rulesMap;
-    }
-
-    private static class Update {
-
-        List<Integer> pages;
-
-        public Update(List<Integer> pages) {
-            this.pages = pages;
-        }
-
-        @Override
-        public String toString() {
-            return pages.toString();
-        }
-    }
-
-    private List<Rule> loadRules(BufferedReader br) throws Exception {
-        List<Rule> retVal = new ArrayList<>();
-        String ruleLine = null;
-        while ((ruleLine = br.readLine()) != null && ruleLine.length() != 0) {
-            String[] pages = ruleLine.split("\\|");
-            Rule rule = new Rule(pages[0], pages[1]);
-            retVal.add(rule);
-        }
-        return retVal;
-    }
-
-    private List<Update> loadUpdates(BufferedReader br) throws Exception {
-        List<Update> retVal = new ArrayList<>();
-        String updateLine = null;
-        while ((updateLine = br.readLine()) != null) {
-            Update update = new Update(
-                    Arrays.stream(updateLine.split(",")).map(Integer::parseInt).collect(Collectors.toList()));
-            retVal.add(update);
-        }
-        return retVal;
     }
 
 }
