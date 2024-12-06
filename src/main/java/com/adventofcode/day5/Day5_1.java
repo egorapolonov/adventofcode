@@ -21,7 +21,7 @@ public class Day5_1 {
 
     public void count() throws Exception {
         // 143 correct answer for tmp
-        // 143 correct answer
+        // 7024 correct answer
         try (BufferedReader br = new BufferedReader(
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day5_1_tmp.txt")))) {
                 new InputStreamReader(FileUtils.resourceFileToInputStream("day5_1.txt")))) {
