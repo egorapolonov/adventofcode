@@ -25,6 +25,7 @@ public class Day6_2 extends Day6_1 {
         predictRoute(start);
     }
 
+    // Now, we're going to iterate thought all visited positions and put an obstacle there
     private void predictRoute(Position start) throws Exception {
         int counter = 0;
         int index = 0;
@@ -34,7 +35,7 @@ public class Day6_2 extends Day6_1 {
                 char tmp = getValAndSetObstacle(point);
                 testObstacle = new Position(point); // do not validate anything until face test obstacle
                 Map<Position, Position> mem = new HashMap<>();
-                if (isLoopDetectedCycle(rows, mem, direction, null)) {
+                if (isLoopDetectedCycle(mem, direction, null)) {
                     counter++;
                     System.out.println("O = " + point);
                 } else {
@@ -56,8 +57,7 @@ public class Day6_2 extends Day6_1 {
         return false;
     }
 
-    private boolean isLoopDetectedCycle(List<List<Position>> map, Map<Position, Position> mem, Position direction,
-            Boolean testObstacleDetected) {
+    private boolean isLoopDetectedCycle(Map<Position, Position> mem, Position direction, Boolean testObstacleDetected) {
         Boolean detected = null;
         while (detected == null) {
             if (direction.ch == UP) {
@@ -71,10 +71,10 @@ public class Day6_2 extends Day6_1 {
                     break;
                 }
                 mem(mem, direction);
-                boolean fm = prepareNextUpDownMove(map, direction, facingRow);
+                boolean fm = moveVerticalAndCheckTestObstacle(direction, facingRow);
                 testObstacleDetected = testObstacleDetected(testObstacleDetected, fm);
             } else if (direction.ch == DOWN) {
-                if (direction.row == map.get(direction.row).size() - 1) {
+                if (direction.row == rows.get(direction.row).size() - 1) {
                     detected = false;
                     break;
                 }
@@ -84,7 +84,7 @@ public class Day6_2 extends Day6_1 {
                     break;
                 }
                 mem(mem, direction);
-                boolean fm = prepareNextUpDownMove(map, direction, facingRow);
+                boolean fm = moveVerticalAndCheckTestObstacle(direction, facingRow);
                 testObstacleDetected = testObstacleDetected(testObstacleDetected, fm);
             } else if (direction.ch == LEFT) {
                 if (direction.col == 0) {
@@ -93,13 +93,14 @@ public class Day6_2 extends Day6_1 {
                 }
                 int facingCol = direction.col - 1;
                 if (existsDirection(mem, direction, testObstacleDetected)) {
-                    return true;
+                    detected = true;
+                    break;
                 }
                 mem(mem, direction);
-                boolean fm = prepareNextSideMove(map, direction, facingCol);
+                boolean fm = moveSideAndCheckTestObstacle(direction, facingCol);
                 testObstacleDetected = testObstacleDetected(testObstacleDetected, fm);
             } else if (direction.ch == RIGHT) {
-                if (direction.col == map.size() - 1) {
+                if (direction.col == rows.size() - 1) {
                     detected = false;
                     break;
                 }
@@ -109,11 +110,10 @@ public class Day6_2 extends Day6_1 {
                     break;
                 }
                 mem(mem, direction);
-                boolean fm = prepareNextSideMove(map, direction, facingCol);
+                boolean fm = moveSideAndCheckTestObstacle(direction, facingCol);
                 testObstacleDetected = testObstacleDetected(testObstacleDetected, fm);
-            } else if (direction.ch == OBSTACLE) {
-                //System.out.println("WARNING! Moved into obstacle " + direction);
-                detected = false;
+            } else {
+                throw new IllegalStateException("Incrorrect move at : " + direction);
             }
         }
         return detected;
@@ -160,31 +160,29 @@ public class Day6_2 extends Day6_1 {
     }
 
     private static Position resetToStart(Position start) {
-        Position direction;
-        direction = new Position(start);
-        return direction;
+        return new Position(start);
     }
 
     private static boolean isNotStartPoint(Position start, Position point, int index) {
         return index != 0 && !point.equals(start);
     }
 
-    private boolean prepareNextSideMove(List<List<Position>> map, Position direction, int facingCol) {
-        Position facing = map.get(direction.row).get(facingCol);
+    private boolean moveSideAndCheckTestObstacle(Position direction, int facingCol) {
+        Position facing = rows.get(direction.row).get(facingCol);
         if (isFacingObstacle(facing)) {
             direction.ch = turn(direction.ch);
-            return facing.equals(testObstacle);
+            return facing.equals(testObstacle); // essential. Check if we moved because of test obstacle
         } else {
             direction.col = facingCol;
         }
         return false;
     }
 
-    private boolean prepareNextUpDownMove(List<List<Position>> map, Position direction, int facingRow) {
-        Position facing = map.get(facingRow).get(direction.col);
+    private boolean moveVerticalAndCheckTestObstacle(Position direction, int facingRow) {
+        Position facing = rows.get(facingRow).get(direction.col);
         if (isFacingObstacle(facing)) {
             direction.ch = turn(direction.ch);
-            return facing.equals(testObstacle);
+            return facing.equals(testObstacle); // essential. Check if we moved because of test obstacle
         } else {
             direction.row = facingRow;
         }
@@ -199,16 +197,19 @@ public class Day6_2 extends Day6_1 {
     }
 
     private boolean existsDirection(Map<Position, Position> mem, Position next, Boolean firstMove) {
+        // avoid checking memory until we reach test obstacle
         if (firstMove == null) {
             return false;
         }
         return existsInMem(mem, next);
     }
 
+    // means this way we were going earlier
     private static boolean existsInMem(Map<Position, Position> mem, Position next) {
         return mem.get(next) != null && mem.get(next).moves.contains(next.ch);
     }
 
+    // memorize for loop detection
     private void mem(Map<Position, Position> mem, Position direction) {
         Position record = new Position(direction);
         record.moves.clear();
@@ -218,32 +219,6 @@ public class Day6_2 extends Day6_1 {
         } else {
             mem.get(record).moves.add(direction.ch);
         }
-    }
-
-    protected boolean isFacingObstacle(Position front) {
-        return OBSTACLE == front.ch;
-    }
-
-    @Override
-    protected void prepareNextUpDownMove(Position direction, int facingRow) {
-        Position facing = rows.get(facingRow).get(direction.col);
-        if (isFacingObstacle(facing)) {
-            direction.ch = turn(direction.ch);
-        } else {
-            direction.row = facingRow;
-        }
-    }
-
-    @Override
-    protected char turn(char direction) {
-        char turn = switch (direction) {
-            case UP -> RIGHT;
-            case RIGHT -> DOWN;
-            case DOWN -> LEFT;
-            case LEFT -> UP;
-            default -> direction;
-        };
-        return turn;
     }
 
 }

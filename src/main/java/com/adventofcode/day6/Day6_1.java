@@ -162,7 +162,7 @@ public class Day6_1 {
         visitAndCollectClone();
     }
 
-    private void prepareNextSideMove(Position direction, int facingCol) {
+    protected void prepareNextSideMove(Position direction, int facingCol) {
         Position facing = rows.get(direction.row).get(facingCol);
         if (isFacingObstacle(facing)) {
             direction.ch = turn(direction.ch);
@@ -173,7 +173,6 @@ public class Day6_1 {
 
     protected void prepareNextUpDownMove(Position direction, int facingRow) {
         Position facing = rows.get(facingRow).get(direction.col);
-        System.out.printf("%s|%s%n", direction, facing);
         if (isFacingObstacle(facing)) {
             direction.ch = turn(direction.ch);
         } else {
@@ -188,11 +187,7 @@ public class Day6_1 {
     }
 
     protected boolean isFacingObstacle(Position front) {
-        boolean retVal = OBSTACLE == front.ch;
-        if (retVal) {
-            System.out.printf("OBSTACLE : %s%n", front);
-        }
-        return retVal;
+        return OBSTACLE == front.ch;
     }
 
     protected char turn(char direction) {
@@ -203,7 +198,6 @@ public class Day6_1 {
             case LEFT -> UP;
             default -> direction;
         };
-        System.out.printf("TURN : %s%n", turn);
         return turn;
     }
 
