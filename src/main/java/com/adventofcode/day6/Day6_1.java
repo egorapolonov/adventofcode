@@ -12,15 +12,15 @@ import com.adventofcode.utils.FileUtils;
 
 public class Day6_1 {
 
-    private static final char UP = '^';
-    private static final char RIGHT = '>';
-    private static final char DOWN = 'V';
-    private static final char LEFT = '<';
-    private static final Set<Character> DIRECTION = Set.of(UP, RIGHT, DOWN, LEFT);
-    private static final char OBSTACLE = '#';
-    private List<List<Position>> rows;
-    private LinkedHashSet<Position> visited;
-    private Position direction;
+    protected static final char UP = '^';
+    protected static final char RIGHT = '>';
+    protected static final char DOWN = 'V';
+    protected static final char LEFT = '<';
+    protected static final Set<Character> DIRECTION = Set.of(UP, RIGHT, DOWN, LEFT);
+    protected static final char OBSTACLE = '#';
+    protected List<List<Position>> rows;
+    protected LinkedHashSet<Position> visited;
+    protected Position direction;
 
     public static void main(String[] args) throws Exception {
         new Day6_1().count();
@@ -39,7 +39,7 @@ public class Day6_1 {
         System.out.printf("dump : %s%n", visited);
     }
 
-    private void printMap() {
+    protected void printMap() {
         StringBuilder sb = new StringBuilder();
         sb.append("_________MAP_________\n");
         for (List<Position> row : rows) {
@@ -52,10 +52,10 @@ public class Day6_1 {
         }
     }
 
-    private void loadMap() throws Exception {
+    protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(FileUtils.resourceFileToInputStream("day6_1.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day6_1_tmp.txt")))) {
+            //new InputStreamReader(FileUtils.resourceFileToInputStream("day6_1_tmp.txt")))) {
             List<List<Position>> rows = new ArrayList<>();
             String line = null;
             int row = 0;
@@ -75,25 +75,31 @@ public class Day6_1 {
         }
     }
 
-    private static class Position {
+    protected static class Position {
 
         char ch;
         int row;
         int col;
 
         boolean visited;
+        int counter;
+        LinkedHashSet<Character> moves;
 
         public Position(Position position) {
             this.ch = position.ch;
             this.row = position.row;
             this.col = position.col;
             this.visited = position.visited;
+            this.moves = new LinkedHashSet<>(position.moves);
         }
 
         public Position(char ch, int row, int col) {
             this.ch = ch;
             this.row = row;
             this.col = col;
+            this.counter = 1;
+            this.moves = new LinkedHashSet<>();
+            moves.add(ch);
         }
 
         @Override
@@ -113,11 +119,11 @@ public class Day6_1 {
 
         @Override
         public String toString() {
-            return "[%s][%dx%d][%s]".formatted(ch, row, col, visited);
+            return "[%s][%dx%d][%s][%s]counter=[%s]".formatted(ch, row, col, visited, moves, counter);
         }
     }
 
-    private void move(Position direction) {
+    protected void move(Position direction) {
         System.out.println(direction);
         if (direction.ch == UP) {
             if (direction.row == 0) {
@@ -165,7 +171,7 @@ public class Day6_1 {
         }
     }
 
-    private void prepareNextUpDownMove(Position direction, int facingRow) {
+    protected void prepareNextUpDownMove(Position direction, int facingRow) {
         Position facing = rows.get(facingRow).get(direction.col);
         System.out.printf("%s|%s%n", direction, facing);
         if (isFacingObstacle(facing)) {
@@ -175,13 +181,13 @@ public class Day6_1 {
         }
     }
 
-    private void visitAndCollectClone() {
+    protected void visitAndCollectClone() {
         direction.visited = true;
         rows.get(direction.row).get(direction.col).visited = true;
         visited.add(new Position(direction));
     }
 
-    private static boolean isFacingObstacle(Position front) {
+    protected boolean isFacingObstacle(Position front) {
         boolean retVal = OBSTACLE == front.ch;
         if (retVal) {
             System.out.printf("OBSTACLE : %s%n", front);
@@ -189,7 +195,7 @@ public class Day6_1 {
         return retVal;
     }
 
-    private char turn(char direction) {
+    protected char turn(char direction) {
         char turn = switch (direction) {
             case UP -> RIGHT;
             case RIGHT -> DOWN;
