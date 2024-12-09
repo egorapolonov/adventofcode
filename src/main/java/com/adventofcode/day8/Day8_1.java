@@ -20,7 +20,9 @@ public class Day8_1 {
 
     public static void main(String[] args) throws Exception {
         new Day8_1().count();
-        // answer is unknown
+        // answer 367 is too high
+        // 336 is too low
+        // 341
     }
 
     public void count() throws Exception {
@@ -30,6 +32,9 @@ public class Day8_1 {
         for(var entry : groups.entrySet()) {
             calculateGroup(entry.getValue());
         }
+        printMap();
+        System.out.println("visited : " + visited.stream().map(p -> p.count).toList());
+        System.out.println("answer = " + visited.stream().mapToInt(p -> p.antinode ? 1 : 0).sum());
     }
 
     protected List<Position> calculateGroup(List<Position> pos) {
@@ -37,13 +42,20 @@ public class Day8_1 {
             for (int next = index+1;next < pos.size();next++) {
                 List<Position> antinodes = calculateAntiNodes(pos.get(index), pos.get(next));
                 System.out.printf("%n%s+%s --->%s", pos.get(index), pos.get(next), antinodes);
+                antinodes.forEach(this::countIfInRange);
             }
         }
         return null; // TODO: fixt if necessary
     }
 
     private void countIfInRange(Position pos) {
-        // TODO: mark and increment counter in rows array
+        if(pos.row >= 0 && pos.row < rows.size()
+            && pos.col >=0 && pos.col < rows.get(0).size()) {
+            Position mapPos = rows.get(pos.row).get(pos.col);
+            mapPos.count++;
+            mapPos.antinode = true;
+            visited.add(mapPos);
+        }
     }
 
     protected List<Position> calculateAntiNodes(Position one, Position two) {
@@ -60,7 +72,7 @@ public class Day8_1 {
         }
         int leftCol = 0;
         int rightCol = 0;
-        if(colDiff > 0) { // one.row > two.row
+        if(colDiff < 0) { // one.row > two.row
             leftCol = two.col - colDiff;
             rightCol = one.col + colDiff;
         } else { // two.row > one.row
@@ -120,7 +132,8 @@ public class Day8_1 {
         sb.append("_________MAP_________\n");
         for (List<Position> row : rows) {
             for (Position pos : row) {
-                char mark = pos.antinode ? 'O' : pos.ch;
+                //char mark = pos.count > 0 ? '#' : pos.ch;
+                String mark = pos.count > 0 ? String.valueOf(pos.count): String.valueOf(pos.ch);
                 sb.append(mark);
             }
             System.out.println(sb);
@@ -130,8 +143,8 @@ public class Day8_1 {
 
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day8_1_tmp.txt")))) {
-            //new InputStreamReader(FileUtils.resourceFileToInputStream("day8_1.txt")))) {
+            //    new InputStreamReader(FileUtils.resourceFileToInputStream("day8_1_tmp.txt")))) {
+            new InputStreamReader(FileUtils.resourceFileToInputStream("day8_1.txt")))) {
             this.rows = new ArrayList<>();
             this.visited = new LinkedHashSet<>();
             this.groups = new LinkedHashMap<>();
