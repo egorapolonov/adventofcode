@@ -10,17 +10,26 @@ import com.adventofcode.utils.FileUtils;
 
 public class Day7_1 {
 
+    private final boolean countSum;
+    private final boolean countMul;
+    private final boolean countConcat;
+
+    private Day7_1() {
+        this(true, true, false);
+    }
+
+    public Day7_1(boolean countSum, boolean countMul, boolean countConcat) {
+        this.countSum = countSum;
+        this.countMul = countMul;
+        this.countConcat = countConcat;
+    }
+
     public static void main(String[] args) throws Exception {
         new Day7_1().count();
+        // answer is 4998764814652
     }
 
     public void count() throws Exception {
-        // 292: 11 6 16 20
-       /* long expected = 292;
-        List<Long> values = List.of(11, 6, 16, 20);
-        Node node = new Node().calculate(expected, values);
-        System.out.println("calibrated = " + node.calibrated);*/
-
         List<Calibration> calibrations = loadCalibrations();
         long count = 0;
         for (Calibration calibration : calibrations) {
@@ -29,11 +38,24 @@ public class Day7_1 {
                 count += node.expected;
             }
         }
-        System.out.println("final answer = " + count);
-        // answer is 4998764814652
+        System.out.println("answer = " + count);
     }
 
-    protected static class Node {
+    // set calibrated back to the calling node
+    private void markCalibratedIfDetected(Node node) {
+
+        if (countSum && node.sum != null && node.sum.calibrated) {
+            node.calibrated = true;
+        }
+        if (countMul && node.mul != null && node.mul.calibrated) {
+            node.calibrated = true;
+        }
+        if (countConcat && node.concat != null && node.concat.calibrated) {
+            node.calibrated = true;
+        }
+    }
+
+    protected class Node {
 
         int index;
         long expected;
@@ -41,6 +63,7 @@ public class Day7_1 {
         long val;
         Node mul;
         Node sum;
+        Node concat;
         boolean calibrated;
 
         @Override
@@ -50,70 +73,86 @@ public class Day7_1 {
         }
 
         Node() {
-
         }
 
-        Node calculate(long expected, List<Long> values) {
+        protected Node calculate(long expected, List<Long> values) {
             Node root = new Node();
             root.index = 0;
             root.expected = expected;
-            root.val = values.get(index);
-            root.exp = String.valueOf(val);
-            root.sum = sum(root, values);
-            root.mul = mul(root, values);
-            if (root.sum != null && root.sum.calibrated || root.mul != null && root.mul.calibrated) {
-                root.calibrated = true;
-            }
+            root.val = values.get(root.index);
+            root.exp = String.valueOf(root.val);
+            initNextNodes(values, root);
+            markCalibratedIfDetected(root);
             return root;
         }
 
         Node sum(Node prev, List<Long> values) {
-            //System.out.println("prev " + prev);
-            if (prev.index >= values.size() - 1) {
+            if (isLast(prev, values)) {
                 return null;
             }
-            Node retVal = new Node();
-            retVal.index = prev.index + 1;
+            Node retVal = initNode(prev);
             long val = values.get(retVal.index);
-            retVal.expected = prev.expected;
             retVal.exp = prev.exp + "+" + val;
             retVal.val = prev.val + val;
-            retVal.sum = sum(retVal, values);
-            retVal.mul = mul(retVal, values);
-            if (retVal.isAnswer()) {
-                retVal.calibrated = true;
-                System.out.println("answer = " + retVal.exp + ", calibrated = " + prev);
-            }
-            if (retVal.sum != null && retVal.sum.calibrated || retVal.mul != null && retVal.mul.calibrated) {
-                prev.calibrated = true;
-            }
+            initNextNodes(values, retVal);
+            markIfCalibrated(values, retVal);
             return retVal;
         }
 
         Node mul(Node prev, List<Long> values) {
-            if (prev.index >= values.size() - 1) {
+            if (isLast(prev, values)) {
                 return null;
             }
-            Node retVal = new Node();
-            retVal.index = prev.index + 1;
-            retVal.expected = prev.expected;
+            Node retVal = initNode(prev);
             long val = values.get(retVal.index);
             retVal.exp = prev.exp + "*" + val;
             retVal.val = prev.val * val;
+            initNextNodes(values, retVal);
+            markIfCalibrated(values, retVal);
+            return retVal;
+        }
+
+        Node concat(Node prev, List<Long> values) {
+            if (isLast(prev, values)) {
+                return null;
+            }
+            Node retVal = initNode(prev);
+            long prevVal = prev.val;
+            long currVal = values.get(retVal.index);
+            long val = Long.parseLong("%d%d".formatted(prevVal, currVal));
+            retVal.exp = prev.exp + "||" + currVal;
+            retVal.val = val;
+            initNextNodes(values, retVal);
+            markIfCalibrated(values, retVal);
+            return retVal;
+        }
+
+        private Node initNode(Node prev) {
+            Node retVal = new Node();
+            retVal.index = prev.index + 1;
+            retVal.expected = prev.expected;
+            return retVal;
+        }
+
+        private void initNextNodes(List<Long> values, Node retVal) {
             retVal.sum = sum(retVal, values);
             retVal.mul = mul(retVal, values);
-            if (retVal.isAnswer()) {
-                prev.calibrated = true;
-                System.out.println("answer = " + retVal.exp + ", calibrated = " + prev);
+            retVal.concat = concat(retVal, values);
+        }
+
+        private void markIfCalibrated(List<Long> values, Node retVal) {
+            if (retVal.isAnswer() && isLast(retVal, values)) {
+                retVal.calibrated = true; // mark this one as calibrated
             }
-            if (retVal.sum != null && retVal.sum.calibrated || retVal.mul != null && retVal.mul.calibrated) {
-                prev.calibrated = true;
-            }
-            return retVal;
+            markCalibratedIfDetected(retVal);
         }
 
         boolean isAnswer() {
             return val == expected;
+        }
+
+        private boolean isLast(Node prev, List<Long> values) {
+            return prev.index >= values.size() - 1;
         }
 
     }
@@ -136,7 +175,7 @@ public class Day7_1 {
     protected List<Calibration> loadCalibrations() throws Exception {
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(FileUtils.resourceFileToInputStream("day7_1.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day7_1_tmp.txt")))) {
+            //new InputStreamReader(FileUtils.resourceFileToInputStream("day7_1_tmp.txt")))) {
             List<Calibration> retVal = new ArrayList<>();
             String calibrationLine = null;
             while ((calibrationLine = br.readLine()) != null && calibrationLine.length() != 0) {
