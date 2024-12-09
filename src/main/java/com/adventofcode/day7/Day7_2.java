@@ -33,6 +33,7 @@ public class Day7_2 {
         System.out.println("final answer = " + count);
         // answer for tmp 11387
         // answer 37599040735984 is too high
+        // answer 37598910447546 is correct
     }
 
     protected static class Node {
