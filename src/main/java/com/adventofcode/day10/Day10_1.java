@@ -168,7 +168,7 @@ public class Day10_1 {
             }
         }
 
-        private void initNodes(Node node) {
+        void initNodes(Node node) {
             node.up();
             node.down();
             node.left();
@@ -177,13 +177,13 @@ public class Day10_1 {
             if (node.sum == 45) {
                 trailHeads.add(node);
                 node.trailheads = 1;
+                this.trailheads+=node.trailheads;
                 System.out.println("Found : " + node);
             }
         }
 
-        private boolean isInRange(Node node) {
-            return node.row >= 0 && node.row < rows.size() && node.col >= 0 && node.col < rows.getFirst().size()
-                    && !visited.contains(node);
+        boolean isInRange(Node node) {
+            return node.row >= 0 && node.row < rows.size() && node.col >= 0 && node.col < rows.getFirst().size();
         }
 
     }
@@ -206,6 +206,7 @@ public class Day10_1 {
 
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1_tmp_13.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1_tmp_2.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1_tmp.txt")))) {
             new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1.txt")))) {
