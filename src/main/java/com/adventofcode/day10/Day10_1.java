@@ -115,10 +115,6 @@ public class Day10_1 {
             }
         }
 
-        protected Node creteNewNode(int row, int col) {
-            return new Node(row, col);
-        }
-
         protected Node creteNewNode(int row, int col, LinkedHashSet<Node> visited) {
             return new Node(row, col, visited);
         }
