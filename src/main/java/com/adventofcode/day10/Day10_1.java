@@ -37,7 +37,7 @@ public class Day10_1 {
             List<Integer> row = rows.get(rowIndex);
             for (int colIndex = 0; colIndex < row.size(); colIndex++) {
                 if (row.get(colIndex) != null && row.get(colIndex) == 0) {
-                    Node node = new Node(rowIndex, colIndex);
+                    Node node = creteRootNode(rowIndex, colIndex);
                     //System.out.println(node);
                     counter += node.trailheads;
                     System.out.printf("node trailheads : [%dx%d] = %d%n", node.row, node.col, node.trailheads);
@@ -45,6 +45,10 @@ public class Day10_1 {
             }
         }
         return counter;
+    }
+
+    protected Node creteRootNode(int row, int col) {
+        return new Node(row, col);
     }
 
     protected class Node {
@@ -100,33 +104,19 @@ public class Day10_1 {
             up();
             down();
             left();
-            right();/*
-            countTrailHeads(up);
-            countTrailHeads(down);
-            countTrailHeads(left);
-            countTrailHeads(right);*/
-        }
-
-        private void countTrailHeads(Node node) {
-            if (node != null) {
-                this.trailheads += node.trailheads;
-            }
-        }
-
-        Node() {
+            right();
         }
 
         void up() {
             Node node = creteNewNode(row - 1, col, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
-                if (node.val != null && node.val - val == 1) {
-                    node.sum = node.val + sum;
-                    initNodes(node);
-                    this.up = node;
-                    this.trailheads += node.trailheads;
-                }
+                this.up = getIfValid(node);
             }
+        }
+
+        protected Node creteNewNode(int row, int col) {
+            return new Node(row, col);
         }
 
         protected Node creteNewNode(int row, int col, LinkedHashSet<Node> visited) {
@@ -137,39 +127,33 @@ public class Day10_1 {
             Node node = creteNewNode(row + 1, col, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
-                if (node.val != null && node.val - val == 1) {
-                    node.sum = node.val + sum;
-                    initNodes(node);
-                    this.down = node;
-                    this.trailheads += node.trailheads;
-                }
+                this.down = getIfValid(node);
             }
         }
 
         void left() {
-            Node node = creteNewNode(row, col-1, visited);
+            Node node = creteNewNode(row, col - 1, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
-                if (node.val != null && node.val - val == 1) {
-                    node.sum = node.val + sum;
-                    initNodes(node);
-                    this.left = node;
-                    this.trailheads += node.trailheads;
-                }
+                this.left = getIfValid(node);
             }
         }
 
         void right() {
-            Node node = creteNewNode(row, col+1, visited);
+            Node node = creteNewNode(row, col + 1, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
-                if (node.val != null && node.val - val == 1) {
-                    node.sum = node.val + sum;
-                    initNodes(node);
-                    this.right = node;
-                    this.trailheads += node.trailheads;
-                }
+                this.right = getIfValid(node);
             }
+        }
+
+        Node getIfValid(Node node) {
+            if (node.val != null && node.val - val == 1) {
+                node.sum = node.val + sum;
+                initNodes(node);
+                this.trailheads += node.trailheads;
+            }
+            return node;
         }
 
         void initNodes(Node node) {
@@ -213,7 +197,7 @@ public class Day10_1 {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1_tmp_13.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1_tmp_2.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1_tmp.txt")))) {
-            new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1.txt")))) {
             this.rows = new ArrayList<>();
             String line = null;
             while ((line = br.readLine()) != null) {
