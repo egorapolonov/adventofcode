@@ -183,6 +183,7 @@ public class Day6_1 {
     protected void visitAndCollectClone() {
         direction.visited = true;
         rows.get(direction.row).get(direction.col).visited = true;
+        rows.get(direction.row).get(direction.col).moves.add(direction.ch);
         visited.add(new Position(direction));
     }
 
