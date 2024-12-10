@@ -3,7 +3,9 @@ package com.adventofcode.day10;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 
 import com.adventofcode.utils.FileUtils;
 
@@ -15,7 +17,7 @@ public class Day10_1 {
 
     public static void main(String[] args) throws Exception {
         new Day10_1().count();
-        // answer 6331212425418 is correct
+        // answer 694 is correct
     }
 
     protected void count() throws Exception {
@@ -59,10 +61,33 @@ public class Day10_1 {
         Node left;
         Node right;
 
+        LinkedHashSet<Node> visited;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            Node node = (Node) o;
+            return row == node.row && col == node.col;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(row, col);
+        }
+
         @Override
         public String toString() {
             return "Node{" + "row=" + row + ", col=" + col + ", val=" + val + ", sum=" + sum + ", trailheads="
                    + trailheads + ", up=" + up + ", down=" + down + ", left=" + left + ", right=" + right + '}';
+        }
+
+        Node(int row, int col, LinkedHashSet<Node> visited) {
+            this.row = row;
+            this.col = col;
+            this.visited = visited;
         }
 
         Node(int row, int col) {
@@ -71,6 +96,7 @@ public class Day10_1 {
             this.sum = 0;
             this.val = 0;
             this.trailheads = 0;
+            this.visited = new LinkedHashSet<>();
             up();
             down();
             left();
@@ -91,16 +117,11 @@ public class Day10_1 {
         }
 
         void up() {
-            Node node = new Node();
-            node.row = row - 1;
-            node.col = col;
+            Node node = new Node(row - 1, col, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
                 if (node.val != null && node.val - val == 1) {
                     node.sum = node.val + sum;
-                    node.up();
-                    node.left();
-                    node.right();
                     initNodes(node);
                     this.up = node;
                     this.trailheads += node.trailheads;
@@ -109,16 +130,11 @@ public class Day10_1 {
         }
 
         void down() {
-            Node node = new Node();
-            node.row = row + 1;
-            node.col = col;
+            Node node = new Node(row + 1, col, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
                 if (node.val != null && node.val - val == 1) {
                     node.sum = node.val + sum;
-                    node.down();
-                    node.left();
-                    node.right();
                     initNodes(node);
                     this.down = node;
                     this.trailheads += node.trailheads;
@@ -127,16 +143,11 @@ public class Day10_1 {
         }
 
         void left() {
-            Node node = new Node();
-            node.row = row;
-            node.col = col - 1;
+            Node node = new Node(row, col-1, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
                 if (node.val != null && node.val - val == 1) {
                     node.sum = node.val + sum;
-                    node.up();
-                    node.down();
-                    node.left();
                     initNodes(node);
                     this.left = node;
                     this.trailheads += node.trailheads;
@@ -145,16 +156,11 @@ public class Day10_1 {
         }
 
         void right() {
-            Node node = new Node();
-            node.row = row;
-            node.col = col + 1;
+            Node node = new Node(row, col+1, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
                 if (node.val != null && node.val - val == 1) {
                     node.sum = node.val + sum;
-                    node.up();
-                    node.down();
-                    node.right();
                     initNodes(node);
                     this.right = node;
                     this.trailheads += node.trailheads;
@@ -163,15 +169,21 @@ public class Day10_1 {
         }
 
         private void initNodes(Node node) {
+            node.up();
+            node.down();
+            node.left();
+            node.right();
+            this.visited.add(node);
             if (node.sum == 45) {
                 trailHeads.add(node);
                 node.trailheads = 1;
-                System.out.println("Found : " + node + " at :  " + this);
+                System.out.println("Found : " + node);
             }
         }
 
         private boolean isInRange(Node node) {
-            return node.row >= 0 && node.row < rows.size() && node.col >= 0 && node.col < rows.getFirst().size();
+            return node.row >= 0 && node.row < rows.size() && node.col >= 0 && node.col < rows.getFirst().size()
+                    && !visited.contains(node);
         }
 
     }
@@ -194,9 +206,9 @@ public class Day10_1 {
 
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1_tmp_2.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1_tmp_2.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1_tmp.txt")))) {
-            //new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1.txt")))) {
+            new InputStreamReader(FileUtils.resourceFileToInputStream("day10_1.txt")))) {
             this.rows = new ArrayList<>();
             String line = null;
             while ((line = br.readLine()) != null) {
