@@ -117,7 +117,7 @@ public class Day10_1 {
         }
 
         void up() {
-            Node node = new Node(row - 1, col, visited);
+            Node node = creteNewNode(row - 1, col, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
                 if (node.val != null && node.val - val == 1) {
@@ -129,8 +129,12 @@ public class Day10_1 {
             }
         }
 
+        protected Node creteNewNode(int row, int col, LinkedHashSet<Node> visited) {
+            return new Node(row, col, visited);
+        }
+
         void down() {
-            Node node = new Node(row + 1, col, visited);
+            Node node = creteNewNode(row + 1, col, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
                 if (node.val != null && node.val - val == 1) {
@@ -143,7 +147,7 @@ public class Day10_1 {
         }
 
         void left() {
-            Node node = new Node(row, col-1, visited);
+            Node node = creteNewNode(row, col-1, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
                 if (node.val != null && node.val - val == 1) {
@@ -156,7 +160,7 @@ public class Day10_1 {
         }
 
         void right() {
-            Node node = new Node(row, col+1, visited);
+            Node node = creteNewNode(row, col+1, visited);
             if (isInRange(node)) {
                 node.val = rows.get(node.row).get(node.col);
                 if (node.val != null && node.val - val == 1) {
@@ -177,13 +181,13 @@ public class Day10_1 {
             if (node.sum == 45) {
                 trailHeads.add(node);
                 node.trailheads = 1;
-                this.trailheads+=node.trailheads;
                 System.out.println("Found : " + node);
             }
         }
 
         boolean isInRange(Node node) {
-            return node.row >= 0 && node.row < rows.size() && node.col >= 0 && node.col < rows.getFirst().size();
+            return node.row >= 0 && node.row < rows.size() && node.col >= 0 && node.col < rows.getFirst().size()
+                   && !visited.contains(node);
         }
 
     }

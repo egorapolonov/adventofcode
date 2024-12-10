@@ -1,5 +1,6 @@
 package com.adventofcode.day10;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Day10_2 extends Day10_1 {
@@ -32,11 +33,19 @@ public class Day10_2 extends Day10_1 {
             super(row, col);
         }
 
-        @Override
-        void initNodes(Node node) {
-            this.visited.clear();
-            super.initNodes(node);
-            this.visited.clear();
+        RaitingNode(int row, int col, LinkedHashSet<Node> visited) {
+            super(row, col, visited);
         }
+
+        @Override
+        protected Node creteNewNode(int row, int col, LinkedHashSet<Node> visited) {
+            return new RaitingNode(row, col, visited);
+        }
+
+        @Override
+        boolean isInRange(Node node) {
+            return node.row >= 0 && node.row < rows.size() && node.col >= 0 && node.col < rows.getFirst().size();
+        }
+
     }
 }
