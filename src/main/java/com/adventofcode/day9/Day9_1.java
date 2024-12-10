@@ -20,9 +20,10 @@ public class Day9_1 {
 
     public static void main(String[] args) throws Exception {
         new Day9_1().count();
+        // answer 6331212425418 is correct
     }
 
-    public void count() throws Exception {
+    protected void count() throws Exception {
         loadMap();
         printMap();
         System.out.println(rows);
@@ -30,10 +31,9 @@ public class Day9_1 {
         System.out.println(rows);
         printMap();
         System.out.println("answer = " + calculateCheckSum());
-        // answer 6331212425418 is correct
     }
 
-    private void maintainDisk() {
+    protected void maintainDisk() {
         for (List<Block> row : rows) {
             int insertIndexOffset = 0;
             for (int forwardIndex = 0, backwardIndex = row.size() - 1;
@@ -105,7 +105,7 @@ public class Day9_1 {
         return retVal;
     }
 
-    private static int subBlockIndex(int forwardIndex, int indexOffset) {
+    protected int subBlockIndex(int forwardIndex, int indexOffset) {
         return forwardIndex + 1 + indexOffset;
     }
 
