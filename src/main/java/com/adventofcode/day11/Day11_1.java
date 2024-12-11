@@ -16,6 +16,7 @@ public class Day11_1 {
 
     public static void main(String[] args) throws Exception {
         new Day11_1().count(25);
+        // answer 229043 is correct
     }
 
     protected void count(int blinks) throws Exception {
