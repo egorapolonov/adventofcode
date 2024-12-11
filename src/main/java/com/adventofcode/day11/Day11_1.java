@@ -15,22 +15,20 @@ public class Day11_1 {
     protected List<Long> stones;
 
     public static void main(String[] args) throws Exception {
-        new Day11_1().count();
+        new Day11_1().count(25);
     }
 
-    protected void count() throws Exception {
+    protected void count(int blinks) throws Exception {
         loadStones();
         printStones();
-        System.out.println("answer = unknown so far");
-        blink(25);
-        printStones();
-        System.out.println("answer = " + stones.size());
+        System.out.println("answer = " + countTransformations(blinks));
     }
 
-    protected void blink(int n) {
-        for(int i = 0;i<n;i++) {
+    protected long countTransformations(int blinks) {
+        for(int blinkIndex = 0;blinkIndex<blinks;blinkIndex++) {
             transform();
         }
+        return stones.size();
     }
 
     protected void transform() {
