@@ -3,9 +3,10 @@ package com.adventofcode.day12;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,8 @@ public class Day12_2 {
 
     public static void main(String[] args) throws Exception {
         new Day12_2().count();
-        // answer 694 is correct
+        // answer 805986 is too low
+        // answer 841078 is
     }
 
     protected void count() throws Exception {
@@ -40,51 +42,78 @@ public class Day12_2 {
             for (int colIndex = 0; colIndex < row.size(); colIndex++) {
                 Node node = creteRootNode(rowIndex, colIndex);
                 if (node != null) {
-                    System.out.printf("node : [%dx%d] = %d%n", node.row, node.col, node.area);
+                    System.out.printf("node [%s]: [%dx%d] : a=%d, ans=%d%n", node.val, node.row, node.col, node.area, node.sides);
                     nodes.add(node);
                 }
             }
         }
         nodes.forEach(System.out::println);
         long price = 0;
-       /* for (Node node : nodes) {
-            price += node.area * node.perimeter;
-        }*/
         for (Node node : nodes) {
-            long sides = countSides(node);
-            long plantsPrice = node.area * sides;
-            System.out.printf("%n[%s]: u=%d, d=%d, l=%d, r=%d, ,a=%d, s=%d, p=%d%n", node.val, node.upSides.size(),
-                    node.downSides.size(), node.leftSides.size(), node.rightSides.size(), node.area, sides,
-                    plantsPrice);
-            price += plantsPrice;
+            System.out.printf("%n[%s]: a=%d, ans=%d%n", node.val, node.area, node.sides);
+            price += node.area * node.sides;
         }
         return price;
     }
 
-    private static long countSides(Node node) {
-        return countSides(node.upSides)
-               + countSides(node.downSides)
-               + countSides(node.leftSides)
-               + countSides(node.rightSides);
-    }
-
-    private static long countSides(Map<Integer, Set<Integer>> sides) {
-        long retVal = 0;
-        if(sides != null && sides.size() > 0) {
-            for (var dimension : sides.entrySet()) {
-                retVal += dimension.getValue().size();
-            }
-        }
-        return retVal;
-    }
-
     protected Node creteRootNode(int row, int col) {
-        Node retVal = new Node(row, col);
+        Node retVal = new Node();
+        retVal.row=row;
+        retVal.col = col;
         if (!visited.contains(retVal)) {
+            retVal = new Node(row, col);
             visited.add(retVal);
             return retVal;
         }
         return null;
+    }
+
+    protected class SideKey {
+
+        int row;
+        int col;
+        boolean visited;
+
+        public SideKey(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
+
+        public int getRow() {
+            return row;
+        }
+
+        public void setRow(int row) {
+            this.row = row;
+        }
+
+        public int getCol() {
+            return col;
+        }
+
+        public void setCol(int col) {
+            this.col = col;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            SideKey sideKey = (SideKey) o;
+            return row == sideKey.row && col == sideKey.col;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(row, col);
+        }
+
+        @Override
+        public String toString() {
+            return "SideKey{" + "row=" + row + ", col=" + col + '}';
+        }
     }
 
     protected class Node {
@@ -101,11 +130,11 @@ public class Day12_2 {
         Node left;
         Node right;
 
-        Set<Node> waypoints;
-        Map<Integer, Set<Integer>> upSides; //<ROW, COL>
-        Map<Integer, Set<Integer>> downSides; //<ROW, CO>
-        Map<Integer, Set<Integer>> leftSides; // <COL,ROW>
-        Map<Integer, Set<Integer>> rightSides; // <COL,ROW>
+        LinkedHashSet<SideKey> ups;
+        LinkedHashSet<SideKey> downs;
+        LinkedHashSet<SideKey> lefts;
+        LinkedHashSet<SideKey> rights;
+        LinkedHashSet<Node> waypoints;
 
         @Override
         public boolean equals(Object o) {
@@ -124,16 +153,17 @@ public class Day12_2 {
 
         @Override
         public String toString() {
-            return "Node{" + "row=" + row + ", col=" + col + ", val=" + val + ", area=" + area + ", upSides=" + upSides
-                   + ", downSides=" + downSides + ", leftSides=" + leftSides + ", rightSides=" + rightSides + '}';
+            return "Node{" + "row=" + row + ", col=" + col + ", val=" + val + ", area=" + area + ", perimeter="
+                   + perimeter + ", sides=" + sides + '}';
         }
 
-        Node(int row, int col, Set<Node> waypoints) {
+        Node(){}
+
+        Node(int row, int col, LinkedHashSet<Node> waypoints) {
             this.row = row;
             this.col = col;
             this.area = 1;
             this.perimeter = 4;
-            this.sides = 4;
             this.waypoints = waypoints;
         }
 
@@ -142,19 +172,162 @@ public class Day12_2 {
             this.col = col;
             this.area = 1;
             this.perimeter = 4;
-            this.sides = 4;
             this.val = rows.get(this.row).get(this.col);
             this.waypoints = new LinkedHashSet<>();
             this.waypoints.add(this);
-            this.upSides = new LinkedHashMap<>();
-            this.downSides = new LinkedHashMap<>();
-            this.leftSides = new LinkedHashMap<>();
-            this.rightSides = new LinkedHashMap<>();
+            this.ups = new LinkedHashSet<>();
+            this.downs = new LinkedHashSet<>();
+            this.lefts = new LinkedHashSet<>();
+            this.rights = new LinkedHashSet<>();
             up();
             down();
             left();
             right();
-            maintainNodeNeighborhood();
+            maintainPerimeter();
+            maintainSides();
+        }
+
+        private void maintainSides() {
+            calculateUps();
+            calculateDowns();
+            calculateLefts();
+            calculateRights();
+        }
+
+        long calculateUps() {
+            Map<Integer, Set<SideKey>> groupsByRow = new HashMap<>();
+            for (var side : ups) {
+                groupsByRow.computeIfAbsent(side.row, HashSet::new);
+                for(var side1 : ups) {
+                    if(side.row == side1.row) {
+                        groupsByRow.get(side.row).add(side1);
+                    }
+                }
+            }
+            List<Set<SideKey>> cols = calculateVertical(groupsByRow);
+            this.sides +=cols.size();
+            return cols.size();
+        }
+
+        private List<Set<SideKey>> calculateVertical(Map<Integer, Set<SideKey>> groupsByRow) {
+            List<Set<SideKey>> cols = new ArrayList<>();
+            for(var group : groupsByRow.entrySet()) {
+                List<SideKey> keys = new ArrayList<>(group.getValue());
+                Collections.sort(keys, Comparator.comparingInt(SideKey::getCol));
+                for(SideKey sk : keys) {
+                    if(!sk.visited) {
+                        System.out.println("sk : " + sk);
+                        Set<SideKey> gr = new HashSet<>();
+                        sk.visited= true;
+                        gr.add(sk);
+                        int prevCol = sk.col;
+                        for (SideKey sk1 : keys) {
+                            if (!sk1.visited) {
+                                System.out.println("[%dx%d] vs [%dx%d]".formatted(prevCol, sk.col, sk1.row, sk1.col));
+                                if (sk1.col == prevCol + 1) {
+                                    sk1.visited = true;
+                                    gr.add(sk1);
+                                    prevCol = sk1.col;
+                                }
+                            }
+                        }
+                        if (!gr.isEmpty()) {
+                            System.out.println("gr = " + gr);
+                            cols.add(gr);
+                        }
+                    }
+                }
+                for(SideKey sk : keys) {
+                    if(!sk.visited) {
+                        sk.visited = true;
+                        cols.add(Set.of(sk));
+                    }
+                }
+            }
+            return cols;
+        }
+
+        long calculateLefts() {
+            Map<Integer, Set<SideKey>> groupsByRow = new HashMap<>();
+            for (var side : lefts) {
+                groupsByRow.computeIfAbsent(side.col, HashSet::new);
+                for(var side1 : lefts) {
+                    if(side.col == side1.col) {
+                        groupsByRow.get(side.col).add(side1);
+                    }
+                }
+            }
+            List<Set<SideKey>> cols = calculateHorizontal(groupsByRow);
+            this.sides +=cols.size();
+            return cols.size();
+        }
+
+        long calculateRights() {
+            Map<Integer, Set<SideKey>> groupsByRow = new HashMap<>();
+            for (var side : rights) {
+                groupsByRow.computeIfAbsent(side.col, HashSet::new);
+                for(var side1 : rights) {
+                    if(side.col == side1.col) {
+                        groupsByRow.get(side.col).add(side1);
+                    }
+                }
+            }
+            List<Set<SideKey>> cols = calculateHorizontal(groupsByRow);
+            this.sides +=cols.size();
+            return cols.size();
+        }
+
+        private List<Set<SideKey>> calculateHorizontal(Map<Integer, Set<SideKey>> groupsByRow) {
+            List<Set<SideKey>> cols = new ArrayList<>();
+            for(var group : groupsByRow.entrySet()) {
+                List<SideKey> keys = new ArrayList<>(group.getValue());
+                Collections.sort(keys, Comparator.comparingInt(SideKey::getRow));
+                for(SideKey sk : keys) {
+                    if(!sk.visited) {
+                        System.out.println("sk : " + sk);
+                        Set<SideKey> gr = new HashSet<>();
+                        sk.visited= true;
+                        gr.add(sk);
+                        int prevRow = sk.row;
+                        for (SideKey sk1 : keys) {
+                            if (!sk1.visited) {
+                                System.out.println("[%dx%d] vs [%dx%d]".formatted(prevRow, sk.col, sk1.row, sk1.col));
+                                if (sk1.row == prevRow + 1) {
+                                    sk1.visited = true;
+                                    gr.add(sk1);
+                                    prevRow = sk1.row;
+                                }
+                            }
+                        }
+                        if (!gr.isEmpty()) {
+                            System.out.println("gr = " + gr);
+                            cols.add(gr);
+                        }
+                    }
+                }
+                for(SideKey sk : keys) {
+                    if(!sk.visited) {
+                        sk.visited = true;
+                        cols.add(Set.of(sk));
+                    }
+                }
+            }
+            return cols;
+        }
+
+        long calculateDowns() {
+            Map<Integer, Set<SideKey>> groupsByRow = new HashMap<>();
+            for (var side : downs) {
+                groupsByRow.computeIfAbsent(side.row, HashSet::new);
+                for(var side1 : downs) {
+                    if(side.row == side1.row) {
+                        groupsByRow.get(side.row).add(side1);
+                    }
+                }
+            }
+            List<Set<SideKey>> cols = calculateVertical(groupsByRow);
+            this.sides +=cols.size();
+            return cols.size();
         }
 
         void up() {
@@ -173,7 +346,7 @@ public class Day12_2 {
             this.right = createNodeIfValid(row, col + 1, waypoints);
         }
 
-        private Node createNodeIfValid(int row, int col, Set<Node> waypoints) {
+        private Node createNodeIfValid(int row, int col, LinkedHashSet<Node> waypoints) {
             Node node = creteNewNode(row, col, waypoints);
             Node validNode = null;
             if (isInRange(node)) {
@@ -183,25 +356,19 @@ public class Day12_2 {
             return validNode;
         }
 
-        protected Node creteNewNode(int row, int col, Set<Node> visited) {
-            Node retVal = new Node(row, col, visited);
-            retVal.upSides = this.upSides;
-            retVal.downSides = this.downSides;
-            retVal.leftSides = this.leftSides;
-            retVal.rightSides = this.rightSides;
-            return retVal;
+        protected Node creteNewNode(int row, int col, LinkedHashSet<Node> visited) {
+            return new Node(row, col, visited);
         }
 
         Node getIfValid(Node node) {
-            //if (node.val != null && node.val.equals(val)) {
-            if (isValid(node)) {
+           if (isValid(node)) {
+                node.ups = this.ups;
+                node.downs = this.downs;
+                node.lefts = this.lefts;
+                node.rights = this.rights;
                 initNodes(node);
                 this.area += node.area;
                 this.perimeter += node.perimeter;
-                /*node.perimeter--;
-                this.perimeter--;
-                this.perimeter+=node.perimeter;*/
-                //this.perimeter+=node.perimeter;
             }
             return node;
         }
@@ -211,19 +378,13 @@ public class Day12_2 {
         }
 
         void initNodes(Node node) {
-          /*  System.out.printf("%nnext to [%dx%d]=%s%n ---> [%dx%d]=%s%n", this.row, this.col, this.val, node.row,
-                    node.col, node.val);*/
             waypoints.add(node);
             visited.add(node);
             node.up();
             node.down();
             node.left();
             node.right();
-            //maintainPerimeter(node);
-            //this.perimeter+=node.perimeter;
-            node.maintainNodeNeighborhood();
-            /*maintainPerimeter(node);
-            this.perimeter=node.perimeter;*/
+            node.maintainPerimeter();
         }
 
         boolean isInRange(Node node) {
@@ -231,133 +392,51 @@ public class Day12_2 {
                    && !waypoints.contains(node);
         }
 
-        private void maintainNodeNeighborhood() {
-            Node up = creteNewNode(this.row + 1, this.col, waypoints);
-            boolean missingUp = true;
+        private void maintainPerimeter() {
+            Node up = creteNewNode(this.row - 1, this.col, waypoints);
             if (isSimplyInRange(up)) {
                 up.val = rows.get(up.row).get(up.col);
                 if (isValid(up)) {
                     this.perimeter--;
-                    missingUp = false;
                 } else {
-                    //upSides.add(this.row);
+                    ups.add(new SideKey(this.row, this.col));
                 }
             } else {
-                //upSides.add(this.row);
+                ups.add(new SideKey(this.row, this.col));
             }
-            Node down = creteNewNode(this.row - 1, this.col, waypoints);
-            boolean missingDown = true;
+            Node down = creteNewNode(this.row + 1, this.col, waypoints);
             if (isSimplyInRange(down)) {
                 down.val = rows.get(down.row).get(down.col);
                 if (isValid(down)) {
                     this.perimeter--;
-                    missingDown = false;
                 } else {
-                    //downSides.add(this.row);
+                    downs.add(new SideKey(this.row, this.col));
                 }
             } else {
-                //downSides.add(this.row);
+                downs.add(new SideKey(this.row, this.col));
             }
             Node left = creteNewNode(this.row, this.col - 1, waypoints);
-            boolean missingLeft = true;
             if (isSimplyInRange(left)) {
                 left.val = rows.get(left.row).get(left.col);
                 if (isValid(left)) {
                     this.perimeter--;
-                    missingLeft = false;
                 } else {
-                    //leftSides.add(this.col);
+                    lefts.add(new SideKey(this.row, this.col));
                 }
             } else {
-                //leftSides.add(this.col);
+                lefts.add(new SideKey(this.row, this.col));
             }
             Node right = creteNewNode(this.row, this.col + 1, waypoints);
-            boolean missingRight = true;
             if (isSimplyInRange(right)) {
                 right.val = rows.get(right.row).get(right.col);
                 if (isValid(right)) {
                     this.perimeter--;
-                    missingRight = false;
                 } else {
-                    //rightSides.add(this.col);
+                    rights.add(new SideKey(this.row, this.col));
                 }
             } else {
-                //rightSides.add(this.col);
+                rights.add(new SideKey(this.row, this.col));
             }
-            if (missingUp) {
-                if (!upSides.containsKey(this.row)) {
-                    Set<Integer> cols = new HashSet<>();
-                    cols.add(this.col);
-                    upSides.put(this.row, cols);
-                } else if (missingLeft || missingRight) {
-                        if(missingLeft && missingRight) {
-                            Set<Integer> cols = upSides.get(this.row);
-                            cols.add(this.col);
-                            upSides.put(this.row, cols);
-                        } else if (missingLeft) {
-                            Set<Integer> cols = upSides.get(this.row);
-                            if(!cols.contains(right.col)) {
-                                cols.add(this.col);
-                                upSides.put(this.row, cols);
-                            }
-                        } else if(missingRight) {
-                            Set<Integer> cols = upSides.get(this.row);
-                            if(!cols.contains(left.col)) {
-                                cols.add(this.col);
-                                upSides.put(this.row, cols);
-                            }
-                        }
-                    }
-                }
-            if (missingDown) {
-                if (!downSides.containsKey(this.row)) {
-                    Set<Integer> cols = new HashSet<>();
-                    cols.add(this.col);
-                    downSides.put(this.row, cols);
-                } else {
-                    if (missingLeft || missingRight) {
-                        Set<Integer> cols = downSides.get(this.row);
-                        cols.add(this.col);
-                        downSides.put(this.row, cols);
-                    }
-                }
-            }
-            if (missingLeft) {
-                if (!leftSides.containsKey(this.col)) {
-                    Set<Integer> rows = new HashSet<>();
-                    rows.add(this.row);
-                    leftSides.put(this.col, rows);
-                } else {
-                    if (missingUp || missingDown) {
-                        Set<Integer> rows = leftSides.get(this.col);
-                        rows.add(this.row);
-                        leftSides.put(this.col, rows);
-                    }
-                }
-            }
-            if (missingRight) {
-                if(this.row == 2 && this.col == 4) {
-                    System.out.println("Here");
-                }
-                if (!rightSides.containsKey(this.col)) {
-                    Set<Integer> rows = new HashSet<>();
-                    rows.add(this.row);
-                    rightSides.put(this.col, rows);
-                } else {
-                    if (missingUp || missingDown) {
-                        Set<Integer> rows = rightSides.get(this.col);
-                        rows.add(this.row);
-                        rightSides.put(this.col, rows);
-                    }
-                }
-            }
-            System.out.println(
-                    "Sides of [%dx%d] : mu=%s,md=%s,ml=%s,mr=%s".formatted(this.row, this.col, missingUp, missingDown, missingLeft, missingRight));
-            //System.out.println("Perimeter of [%dx%d] = %d".formatted(this.row, this.col, this.perimeter));
-            //System.out.println("Sides of [%dx%d] = %d".formatted(this.row, this.col, this.sides));
-            System.out.println(
-                    "Sides of [%dx%d] : u=%d,d=%d,l=%d,r=%d".formatted(this.row, this.col, this.upSides.size(),
-                            this.downSides.size(), this.leftSides.size(), this.rightSides.size()));
         }
 
         boolean isSimplyInRange(Node node) {
@@ -384,13 +463,13 @@ public class Day12_2 {
 
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_1.tmp.txt")))) {
 
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_2.tmp.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_3.tmp.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_4.tmp.txt")))) {
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_5.tmp.txt")))) {
+               // new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_3.tmp.txt")))) {
+            //new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_4.tmp.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_5.tmp.txt")))) {
             this.rows = new ArrayList<>();
             String line = null;
             while ((line = br.readLine()) != null) {
