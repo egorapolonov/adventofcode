@@ -56,6 +56,7 @@ public class Day13_1_1 {
                     //System.out.printf("%npressA=%d,pressB=%d%n", pressA, pressB);
                     if(x == prize.x && y == prize.y) {
                         System.out.printf("%n%d,%d=%d%n", x, y, tokens);
+                        System.out.printf("%npressA=%d,pressB=%d,tokens=%d%n", pressA, pressB, tokens);
                         if(minTokens == null) {
                             minTokens = tokens;
                         } else {
@@ -137,9 +138,9 @@ public class Day13_1_1 {
 
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day13_1.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day13_1.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day13_1_tmp.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day13_1_tmp_1.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day13_1_tmp_1.txt")))) {
             this.configs = new ArrayList<>();
             String line = null;
             Button bA = null;
