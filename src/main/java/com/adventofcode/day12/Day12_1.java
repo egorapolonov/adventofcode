@@ -16,7 +16,7 @@ public class Day12_1 {
 
     public static void main(String[] args) throws Exception {
         new Day12_1().count();
-        // answer 694 is correct
+        // answer 1930 is correct
     }
 
     protected void count() throws Exception {
@@ -43,6 +43,7 @@ public class Day12_1 {
         nodes.forEach(System.out::println);
         long price = 0;
         for (Node node : nodes) {
+            System.out.printf("%n[%s]: a=%d, pe=%d%n", node.val, node.area, node.perimeter);
             price += node.area * node.perimeter;
         }
         return price;
@@ -273,10 +274,11 @@ public class Day12_1 {
 
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_1.tmp.txt")))) {
 
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_2.tmp.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day12_1_4.tmp.txt")))) {
             this.rows = new ArrayList<>();
             String line = null;
             while ((line = br.readLine()) != null) {
