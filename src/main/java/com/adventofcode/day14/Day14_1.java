@@ -2,11 +2,9 @@ package com.adventofcode.day14;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -16,11 +14,12 @@ import com.adventofcode.utils.FileUtils;
 public class Day14_1 {
 
     protected static final char SPACE = '.';
-    protected static final int WIDTH = 11;
-    protected static final int HEIGHT = 7;
+    /*protected static final int WIDTH = 11;
+    protected static final int HEIGHT = 7;*/
+    protected static final int WIDTH = 101;
+    protected static final int HEIGHT = 103;
     protected Map<Integer, Map<Integer, Cell>> map;
     protected Set<Robot> robots;
-
 
     public static void main(String[] args) throws Exception {
         new Day14_1().count();
@@ -30,20 +29,54 @@ public class Day14_1 {
     protected void count() throws Exception {
         loadMap();
         printMap();
+        System.out.println("answer = unknown so far");
         move(100);
         printMap();
-        System.out.println("answer = unknown so far");
+        int answer = countQuadrants();
+        System.out.println("answer = " + answer);
     }
 
     protected void move(int movements) {
-        for(int move = 0;move < movements;move++) {
+        for (int move = 0; move < movements; move++) {
             robots.forEach(Robot::move);
         }
     }
 
-    protected int countQuadrant(int quadrant) {
-        // TODO:
-        return 0;
+    protected int countQuadrants() {
+        int centerOffsetX = WIDTH % 2;
+        int centerOffsetY = HEIGHT % 2;
+        int quadrant0 = 0;
+        for (int y = 0; y < HEIGHT / 2; y++) {
+            for (int x = 0; x < WIDTH / 2; x++) {
+                //System.out.println("y=%d,x=%d".formatted(y, x));
+                quadrant0 += map.get(y).get(x).robots.size();
+            }
+        }
+        System.out.println("__________________");
+        int quadrant1 = 0;
+        for (int y = 0; y < HEIGHT / 2; y++) {
+            for (int x = WIDTH / 2 + centerOffsetX; x < WIDTH; x++) {
+                //System.out.println("y=%d,x=%d".formatted(y, x));
+                quadrant1 += map.get(y).get(x).robots.size();
+            }
+        }
+        System.out.println("__________________");
+        int quadrant2 = 0;
+        for (int y = HEIGHT / 2 + centerOffsetY; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH / 2; x++) {
+                //System.out.println("y=%d,x=%d".formatted(y, x));
+                quadrant2 += map.get(y).get(x).robots.size();
+            }
+        }
+        System.out.println("__________________");
+        int quadrant3 = 0;
+        for (int y = HEIGHT / 2 + centerOffsetY; y < HEIGHT; y++) {
+            for (int x = WIDTH / 2 + centerOffsetX; x < WIDTH; x++) {
+                //System.out.println("y=%d,x=%d".formatted(y, x));
+                quadrant3 += map.get(y).get(x).robots.size();
+            }
+        }
+        return quadrant0 * quadrant1 * quadrant2 * quadrant3;
     }
 
     protected class Robot {
@@ -67,13 +100,13 @@ public class Day14_1 {
             map.get(posY).get(posX).robots.remove(this);
             moveX();
             moveY();
-            System.out.println("newPosX=%d, newPosY=%d".formatted(posX,posY));
+            System.out.println("newPosX=%d, newPosY=%d".formatted(posX, posY));
             map.get(posY).get(posX).robots.add(this);
         }
 
         private void moveX() {
             int newPosX = posX + speedX;
-            if(newPosX >= WIDTH) {
+            if (newPosX >= WIDTH) {
                 newPosX = newPosX % WIDTH;
             } else if (newPosX < 0) {
                 newPosX = (WIDTH + (newPosX % WIDTH)); // in case of enormous speed
@@ -83,7 +116,7 @@ public class Day14_1 {
 
         private void moveY() {
             int newPosY = posY + speedY;
-            if(newPosY >= HEIGHT) {
+            if (newPosY >= HEIGHT) {
                 newPosY = newPosY % HEIGHT;
             } else if (newPosY < 0) {
                 newPosY = (HEIGHT + (newPosY % HEIGHT)); // in case of enormous speed
@@ -129,14 +162,13 @@ public class Day14_1 {
         }
     }
 
-
     protected void printMap() {
         StringBuilder sb = new StringBuilder();
         sb.append("_________MAP_________\n");
-        for(int y =0; y < HEIGHT;y++) {
-            for(int x=0; x<WIDTH;x++) {
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
                 int robots = map.get(y).get(x).robots.size();
-                if(robots > 0) {
+                if (robots > 0) {
                     sb.append(robots);
                 } else {
                     sb.append(SPACE);
@@ -149,14 +181,15 @@ public class Day14_1 {
 
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day14_1_tmp_1.txt")))) {
-               // new InputStreamReader(FileUtils.resourceFileToInputStream("day14_1_tmp_2.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day14_1.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day14_1_tmp_1.txt")))) {
+            // new InputStreamReader(FileUtils.resourceFileToInputStream("day14_1_tmp_2.txt")))) {
             this.map = new HashMap<>();
             this.robots = new HashSet<>();
-            for(int y =0; y < HEIGHT;y++) {
+            for (int y = 0; y < HEIGHT; y++) {
                 map.put(y, new HashMap<>());
-                for(int x=0; x<WIDTH;x++) {
-                    map.get(y).put(x, new Cell(x,y));
+                for (int x = 0; x < WIDTH; x++) {
+                    map.get(y).put(x, new Cell(x, y));
                 }
             }
             printMap();
