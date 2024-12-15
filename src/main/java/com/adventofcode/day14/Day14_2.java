@@ -11,32 +11,113 @@ import java.util.Set;
 
 import com.adventofcode.utils.FileUtils;
 
-public class Day14_1 {
+public class Day14_2 {
 
     protected static final char SPACE = '.';
+    /*protected static final int WIDTH = 11;
+    protected static final int HEIGHT = 7;*/
     protected static final int WIDTH = 101;
     protected static final int HEIGHT = 103;
     protected Map<Integer, Map<Integer, Cell>> map;
     protected Set<Robot> robots;
+    private boolean easterEgg;
 
     public static void main(String[] args) throws Exception {
-        new Day14_1().count();
-        // answer 228690000 is correct
+        new Day14_2().count();
+        // answer 7094 is too high
+        // answer 709 is correct
     }
 
     protected void count() throws Exception {
         loadMap();
         printMap();
         System.out.println("answer = unknown so far");
-        move(100);
-        printMap();
-        int answer = countQuadrants();
-        System.out.println("answer = " + answer);
+        move(Integer.MAX_VALUE);
+        //printMap();
+        //int answer = countQuadrants();
+        //System.out.println("answer = " + answer);
+    }
+
+    // TODO: need to check 100x100, too many iterations
+    protected boolean isSymmetric() {
+        boolean symmetric = true;
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = WIDTH / 2 - 1; x >= 0; x--) {
+                Cell left = map.get(y).get(x);
+                Cell right = map.get(y).get(WIDTH - x - 1);
+                if ((left == null || right == null) || (left.robots.size() != 1 || right.robots.size() != 1)) {
+                    symmetric = false;
+                    break;
+                }
+            }
+        }
+        return symmetric;
+    }
+
+    // TODO: need to check by 500 robots only
+    protected boolean isSymmetricByRobots() {
+        boolean symmetric = true;
+        for (Robot robot : robots) {
+            Cell current = map.get(robot.posY).get(robot.posX);
+            int oppositeX = WIDTH - robot.posX - 1;
+            Cell opposite = map.get(robot.posY).get(oppositeX);
+            //System.out.println("%d vs %d".formatted(robot.posX, oppositeX));
+            if (current.robots.isEmpty() && !opposite.robots.isEmpty()
+            || (!current.robots.isEmpty() && opposite.robots.isEmpty())) {
+                symmetric = false;
+                break;
+            }
+            symmetric = symmetric;
+        }
+        return symmetric;
+    }
+
+    // there is no full-symmetry requirement. Read the description, there is "most of"!. Guessed that they aligned by center
+    protected boolean isSymmetricByMostRobots() {
+        boolean symmetric = false;
+        int counter = 0;
+        for (Robot robot : robots) {
+            Cell current = map.get(robot.posY).get(robot.posX);
+            int oppositeX = WIDTH - robot.posX - 1;
+            Cell opposite = map.get(robot.posY).get(oppositeX);
+            //System.out.println("%d vs %d".formatted(robot.posX, oppositeX));
+            if (current.robots.isEmpty() && !opposite.robots.isEmpty()
+                || (!current.robots.isEmpty() && opposite.robots.isEmpty())) {
+                /*symmetric = false;
+                break;*/
+            }
+            if(!current.robots.isEmpty() && !opposite.robots.isEmpty()) {
+                counter++;
+            }
+            if(counter>=100) { // RANDOMLY played with this number, because size of christmas tree was unknown
+                symmetric = true;
+                break;
+            }
+            if(counter > 2 && current.robots.size() > 0 && opposite.robots.size() > 0){
+                symmetric = symmetric;
+            }
+            if(counter > 10) {
+                //printMap();
+            }
+        }
+        return symmetric;
     }
 
     protected void move(int movements) {
         for (int move = 0; move < movements; move++) {
+            //if(isSymmetric()) {
+            if(move % 10000 == 0) {
+                System.out.println("move so far = " + move);
+            }
+            //if (isSymmetricByRobots()) {
+            if (isSymmetricByMostRobots()) {
+            //if(containsBorder()) {
+                printMap();
+                System.out.println("christmas tree at " + (move + 1));
+                break;
+            }
             robots.forEach(Robot::move);
+            //printMap();
         }
     }
 
@@ -98,8 +179,13 @@ public class Day14_1 {
             map.get(posY).get(posX).robots.remove(this);
             moveX();
             moveY();
-            System.out.println("newPosX=%d, newPosY=%d".formatted(posX, posY));
+            //System.out.println("newPosX=%d, newPosY=%d".formatted(posX, posY));
             map.get(posY).get(posX).robots.add(this);
+            Set<Robot> robots = map.get(posY).get(posX).robots;
+            long count = robots.stream().filter(r -> r.speedX == this.speedX && r.speedY == r.speedY).count();
+            if (count > 1) {
+                easterEgg = true;
+            }
         }
 
         private void moveX() {
@@ -177,10 +263,33 @@ public class Day14_1 {
         }
     }
 
+    // as soon as I get answer by isSymmetricByMostRobots, I guessed that probably X-mas tree is not centered
+    protected boolean containsBorder() {
+        String BORDER = "1111111111111111111111111111111";
+        boolean retVal = false;
+        StringBuilder sb = new StringBuilder();
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                int robots = map.get(y).get(x).robots.size();
+                if (robots > 0) {
+                    sb.append(robots);
+                } else {
+                    sb.append(SPACE);
+                }
+            }
+            if(sb.toString().contains(BORDER)) {
+                retVal = true;
+                break;
+            }
+            sb.setLength(0);
+        }
+        return retVal;
+    }
+
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(FileUtils.resourceFileToInputStream("day14_1.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day14_1_tmp_1.txt")))) {
+            //new InputStreamReader(FileUtils.resourceFileToInputStream("day14_1_tmp_1.txt")))) {
             // new InputStreamReader(FileUtils.resourceFileToInputStream("day14_1_tmp_2.txt")))) {
             this.map = new HashMap<>();
             this.robots = new HashSet<>();
