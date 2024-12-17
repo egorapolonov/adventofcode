@@ -7,24 +7,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Scanner;
 
 import com.adventofcode.utils.FileUtils;
 
 public class Day15_2 {
 
     protected static final String DOT = ".";
-    protected static final String DOT_DOUBLE = ".";
     protected static final String WALL = "#";
-    protected static final String WALL_DOUBLE = "##";
     protected static final String BOX = "O";
     protected static final String BOX_LEFT = "[";
     protected static final String BOX_RIGHT = "]";
     protected static final String CURSOR = "@";
-    protected static final String CURSOR_DOUBLE = "@.";
     protected Map<Integer, Map<Integer, Cell>> map;
     protected List<String> movements;
-    protected List<Box> boxes; // just for faster count
+    protected List<Box> boxes; // just for faster count, we'll load here left corner of boxes '['
     protected Box cursor;
 
     // TODO: duplicate x,y and ch in objects just for better debugging, nothing essential
@@ -45,27 +41,21 @@ public class Day15_2 {
 
     protected long calculateBoxesSum() {
         long total = 0;
-        for(Box box : boxes) {
-            if(box.ch == CURSOR) {
+        for (Box box : boxes) {
+            if (CURSOR.equals(box.ch)) {
                 continue;
             }
-            long sum = box.y * 100 + box.x;
-            total+=sum;
+            long sum = box.y * 100L + box.x;
+            total += sum;
         }
         return total;
     }
 
     protected void move() {
-        Scanner scanner = new Scanner(System.in);
-        for (int move = 0; move < movements.size(); move++) {
-            String direction = movements.get(move);
-            //System.out.println("direction : " + direction);
-            cursor.move(direction);
-            //printMap();
+        for (String direction : movements) {
+            System.out.println(direction + " : " + cursor.move(direction));
             printMap(direction);
-            //scanner.nextLine();
         }
-        scanner.close();
     }
 
     protected class Box {
@@ -156,12 +146,11 @@ public class Day15_2 {
             if (firstNextCell.wall == null) {
                 if (firstNextCell.box != null) {
                     Cell secondNextCell = resolveSecondNextCell(firstNextCell.box);
-                    if (!firstNextCell.box.canMoveVertical(dy)
-                        || (secondNextCell != null && secondNextCell.box != null && !secondNextCell.box.canMoveVertical(dy))) {
+                    if (unableToMoveBothBoxHalves(dy, firstNextCell, secondNextCell)) {
                         return false;
                     }
                     firstNextCell.box.moveVertical(dy);
-                    if(secondNextCell != null && secondNextCell.box != null) {
+                    if (secondNextCell != null && secondNextCell.box != null) {
                         secondNextCell.box.moveVertical(dy);
                     }
                 }
@@ -174,6 +163,10 @@ public class Day15_2 {
             }
         }
 
+        private boolean unableToMoveBothBoxHalves(int dy, Cell firstNextCell, Cell secondNextCell) {
+            return !ableToMoveBothBoxHalves(dy, firstNextCell, secondNextCell);
+        }
+
         boolean canMoveVertical(int dy) {
             int newY = y + dy;
             if (newY >= map.size() || newY < 0) {
@@ -183,10 +176,7 @@ public class Day15_2 {
             if (firstCell.wall == null) {
                 if (firstCell.box != null) {
                     Cell secondCell = resolveSecondNextCell(firstCell.box);
-                    return firstCell.box.canMoveVertical(dy) &&
-                           (
-                           (secondCell == null || secondCell.box == null) || secondCell.box.canMoveVertical(dy)
-                           );
+                    return ableToMoveBothBoxHalves(dy, firstCell, secondCell);
                 }
                 return true;
             } else {
@@ -194,11 +184,16 @@ public class Day15_2 {
             }
         }
 
+        private boolean ableToMoveBothBoxHalves(int dy, Cell firstCell, Cell secondCell) {
+            return firstCell.box.canMoveVertical(dy) && ((secondCell == null || secondCell.box == null)
+                                                         || secondCell.box.canMoveVertical(dy));
+        }
+
         Cell resolveSecondNextCell(Box firstBox) {
-            if(BOX_LEFT.equals(firstBox.ch)) {
-                return map.get(firstBox.y).get(firstBox.x+1);
+            if (BOX_LEFT.equals(firstBox.ch)) {
+                return map.get(firstBox.y).get(firstBox.x + 1);
             } else if (BOX_RIGHT.equals(firstBox.ch)) {
-                return map.get(firstBox.y).get(firstBox.x-1);
+                return map.get(firstBox.y).get(firstBox.x - 1);
             } else {
                 return null;
             }
@@ -238,7 +233,7 @@ public class Day15_2 {
         for (int y = 0; y < map.size(); y++) {
             for (int x = 0; x < map.get(0).size(); x++) {
                 Cell cell = map.get(y).get(x);
-                if(cell == null) {
+                if (cell == null) {
                     sb.append("X");
                 } else if (cell.wall != null) {
                     sb.append(cell.wall.ch);
@@ -259,12 +254,12 @@ public class Day15_2 {
         for (int y = 0; y < map.size(); y++) {
             for (int x = 0; x < map.get(0).size(); x++) {
                 Cell cell = map.get(y).get(x);
-                if(cell == null) {
+                if (cell == null) {
                     sb.append("X");
                 } else if (cell.wall != null) {
                     sb.append(cell.wall.ch);
                 } else if (cell.box != null) {
-                    if(CURSOR.equals(cell.box.ch)) {
+                    if (CURSOR.equals(cell.box.ch)) {
                         sb.append(direction);
                     } else {
                         sb.append(cell.box.ch);
@@ -281,11 +276,11 @@ public class Day15_2 {
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp_1.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp_2.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp_3.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp_4.txt")))) {
+            //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp.txt")))) {
+            //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp_1.txt")))) {
+            //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp_2.txt")))) {
+            //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp_3.txt")))) {
+            //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp_4.txt")))) {
             this.map = new HashMap<>();
             this.movements = new ArrayList<>();
             this.boxes = new ArrayList<>();
@@ -301,9 +296,9 @@ public class Day15_2 {
                 if (!movementsNext) {
                     map.put(y, new HashMap<>());
                     for (int x = 0; x < line.length(); x++) {
-                        String ch = line.substring(x,x+1);
-                        int leftX = x*2;
-                        int rightX = x*2+1;
+                        String ch = line.substring(x, x + 1);
+                        int leftX = x * 2;
+                        int rightX = x * 2 + 1;
                         if (BOX.equals(ch)) {
                             createBox(y, leftX, rightX, BOX_LEFT, BOX_RIGHT);
                         } else if (CURSOR.equals(ch)) {
@@ -317,7 +312,7 @@ public class Day15_2 {
                     y++;
                 } else {
                     for (int x = 0; x < line.length(); x++) {
-                        String ch = line.substring(x,x+1);
+                        String ch = line.substring(x, x + 1);
                         movements.add(ch);
                     }
                 }
@@ -341,10 +336,10 @@ public class Day15_2 {
         Cell cellRight = new Cell(rightX, y);
         cellRight.box = boxRight;
         map.get(y).put(rightX, cellRight);
-        if(CURSOR.equals(leftCh)) {
+        if (CURSOR.equals(leftCh)) {
             cursor = boxLeft;
         }
-        if(BOX_LEFT.equals(leftCh)) {
+        if (BOX_LEFT.equals(leftCh)) {
             boxes.add(boxLeft);
         }
     }
