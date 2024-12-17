@@ -186,9 +186,9 @@ public class Day15_1 {
 
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp_1.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day15_1_tmp_1.txt")))) {
             this.map = new HashMap<>();
             this.movements = new ArrayList<>();
             this.boxes = new ArrayList<>();
