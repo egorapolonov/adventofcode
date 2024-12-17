@@ -32,6 +32,7 @@ public class Day16_1_3_graph {
     protected static final char E = 'E';
     protected Map<Integer, Map<Integer, Node>> map;
     protected Node cursor;
+    protected Node target;
     protected int MAP_WIDTH;
     protected int MAP_HEIGHT;
 
@@ -43,7 +44,52 @@ public class Day16_1_3_graph {
     protected void count() throws Exception {
         loadMap();
         printMap();
-        System.out.println("answer = " + searchBSF('E', cursor).get());
+        //System.out.println("answer = " + searchBSF('E', cursor).get());
+        //System.out.println(findAllPaths(cursor, target));
+        findAllPaths(cursor, target).forEach(this::printPath);
+    }
+
+    private void printPath(List<Node> nodes) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("HERE WE GO : ");
+        for(Node node : nodes) {
+            sb.append(node);
+            sb.append("--->");
+        }
+        System.out.println(sb);
+    }
+
+    public static List<List<Node>> findAllPaths(Node start, Node target) {
+        List<List<Node>> allPaths = new ArrayList<>(); // To store all possible paths
+        Queue<List<Node>> queue = new LinkedList<>();  // BFS Queue to track paths
+
+        // Initialize BFS with the start node
+        List<Node> initialPath = new ArrayList<>();
+        initialPath.add(start);
+        queue.add(initialPath);
+
+        while (!queue.isEmpty()) {
+            // Get the current path from the queue
+            List<Node> currentPath = queue.poll();
+            Node lastNode = currentPath.get(currentPath.size() - 1);
+
+            // If we reached the target node, add this path to the results
+            if (lastNode.equals(target)) {
+                allPaths.add(new ArrayList<>(currentPath));
+                continue;
+            }
+
+            // Explore the neighbors of the last node
+            for (Node neighbor : lastNode.nodes) {
+                if (!currentPath.contains(neighbor)) { // Avoid cycles
+                    List<Node> newPath = new ArrayList<>(currentPath);
+                    newPath.add(neighbor);
+                    queue.add(newPath);
+                }
+            }
+        }
+
+        return allPaths;
     }
 
     protected Optional<Node> searchBSF(char value, Node start) {
@@ -246,6 +292,9 @@ public class Day16_1_3_graph {
                         node.linkRight();
                         if ('S' == ch) {
                             cursor = node;
+                        }
+                        if('E' == ch) {
+                            target = node;
                         }
                         xRow.put(x, node);
                     }
