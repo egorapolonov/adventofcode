@@ -29,7 +29,7 @@ public class Day16_1_2_loop {
 
     public static void main(String[] args) throws Exception {
         new Day16_1_2_loop().count();
-        // answer 1930 is correct
+        // answer 364280 is too high
     }
 
     protected void count() throws Exception {
@@ -268,7 +268,7 @@ public class Day16_1_2_loop {
             node.waypoints.add(node);
             //System.out.println("way : " + node.waypoints);
             visited.add(node);
-            if (map.get(node.y).get(node.x) != 'E') {
+            /*if (map.get(node.y).get(node.x) != 'E') {
                 node.forward();
                 node.clockWise();
                 node.counterClockWise();
@@ -276,8 +276,8 @@ public class Day16_1_2_loop {
             } else if (map.get(node.y).get(node.x) == 'E') {
                 node.direction = 'E';
                 scoreboard.add(node);
-            }
-            /*if (scoreCache.get(node) == null || map.get(node.y).get(node.x) != 'E') {
+            }*/
+            if (map.get(node.y).get(node.x) != 'E' && scoreCache.get(node) == null) {
                 node.forward();
                 node.clockWise();
                 node.counterClockWise();
@@ -285,11 +285,12 @@ public class Day16_1_2_loop {
             } else if (scoreCache.get(node) != null) {
                 node.found= true;
                 node.score+=scoreCache.get(node);
+                scoreboard.add(node);
             } else if (map.get(node.y).get(node.x) == 'E') {
                 node.direction = 'E';
                 node.found = true;
                 scoreboard.add(node);
-            }*/
+            }
         }
 
         boolean isInRange(Node node) {
@@ -306,17 +307,18 @@ public class Day16_1_2_loop {
 
         private void maintainPerimeter() {
             if(forward != null && forward.found) {
-                this.score+=1;
+                this.backwardScore+=forward.backwardScore+1;
                 this.found = true;
             } else if (clockWise != null && clockWise.found) {
-                this.score+=1000;
+                this.backwardScore+=clockWise.backwardScore+1000+1;
                 this.found = true;
             } else if (counterClockWise != null && counterClockWise.found) {
-                this.score+=1000;
+                this.backwardScore+=counterClockWise.backwardScore+1000+1;
                 this.found = true;
             }
             if(this.found) {
-                scoreCache.put(this, this.score);
+                System.out.println("scoreCache : " + scoreCache);
+                scoreCache.put(this, this.backwardScore);
             }
         }
 
@@ -408,9 +410,9 @@ public class Day16_1_2_loop {
 
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp_1.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp_1.txt")))) {
             this.map = new ArrayList<>();
             this.scoreCache = new HashMap<>();
             String line = null;
