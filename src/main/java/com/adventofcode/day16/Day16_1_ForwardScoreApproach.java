@@ -4,16 +4,14 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import com.adventofcode.utils.FileUtils;
 
-public class Day16_1_2_loop {
+public class Day16_1_ForwardScoreApproach {
 
     protected static final char UP = '^';
     protected static final char RIGHT = '>';
@@ -24,12 +22,11 @@ public class Day16_1_2_loop {
     protected List<List<Character>> map;
     protected static LinkedHashSet<Node> visited = new LinkedHashSet<>();
     protected static List<Node> scoreboard = new ArrayList<>();
-    protected Map<Node, Long> scoreCache;
     protected Node cursor;
 
     public static void main(String[] args) throws Exception {
-        new Day16_1_2_loop().count();
-        // answer 364280 is too high
+        new Day16_1_ForwardScoreApproach().count();
+        // fails by StackOverflow on full set
     }
 
     protected void count() throws Exception {
@@ -37,9 +34,7 @@ public class Day16_1_2_loop {
         printMap();
         System.out.println(map);
         System.out.println("answer = unknown so far");
-        //long answer = countMinScore();
         Node node = creteRootNode(cursor.y, cursor.x);
-        //System.out.println("Visited : " + visited);
         System.out.println(
                 "answer = " + scoreboard.stream().min(Comparator.comparingLong(Node::getScore)).orElse(null));
     }
@@ -79,8 +74,6 @@ public class Day16_1_2_loop {
         int x;
         char direction;
         long score;
-        long backwardScore;
-        boolean found;
 
         public long getScore() {
             return score;
@@ -143,24 +136,7 @@ public class Day16_1_2_loop {
             forward();
             clockWise();
             counterClockWise();
-            maintainPerimeter();
         }
-
-       /* void up() {
-            this.up = createNodeIfValid(row - 1, col, waypoints);
-        }
-
-        void down() {
-            this.down = createNodeIfValid(row + 1, col, waypoints);
-        }
-
-        void left() {
-            this.left = createNodeIfValid(row, col - 1, waypoints);
-        }
-
-        void right() {
-            this.right = createNodeIfValid(row, col + 1, waypoints);
-        }*/
 
         void forward() {
             this.forward = switch (direction) {
@@ -172,44 +148,12 @@ public class Day16_1_2_loop {
             };
         }
 
-        Node clockWiseForwardNode() {
-            return switch (direction) {
-                case UP -> createNodeIfValid(y, x+1, score + 1001, RIGHT, waypoints);
-                case RIGHT -> createNodeIfValid(y+1, x, score + 1001, DOWN, waypoints);
-                case DOWN -> createNodeIfValid(y, x-1, score + 1001, LEFT, waypoints);
-                case LEFT -> createNodeIfValid(y-1, x , score + 1001, UP, waypoints);
-                default -> null;
-            };
-        }
-
-        Node counterClockWiseForwardNode() {
-            return switch (direction) {
-                case UP -> createNodeIfValid(y, x-1, score + 1001, LEFT, waypoints);
-                case RIGHT -> createNodeIfValid(y-1, x, score + 1001, UP, waypoints);
-                case DOWN -> createNodeIfValid(y, x+1, score + 1001, RIGHT, waypoints);
-                case LEFT -> createNodeIfValid(y+1, x , score + 1001, DOWN, waypoints);
-                default -> null;
-            };
-        }
-
         void clockWise() {
-            Node node = clockWiseForwardNode();
-            Node validNode = null;
-            if (node != null && isInRange(node)) {
-                node.direction = direction;
-                validNode = getIfValid(node);
-            }
-            this.clockWise = validNode;
+            this.clockWise = createNodeIfValid(y, x, score + 1000, turnClockWise(), waypoints);
         }
 
         void counterClockWise() {
-            Node node = counterClockWiseForwardNode();
-            Node validNode = null;
-            if (node != null && isInRange(node)) {
-                node.direction = direction;
-                validNode = getIfValid(node);
-            }
-            this.clockWise = validNode;
+            this.counterClockWise = createNodeIfValid(y, x, score + 1000, turnCounterClockWise(), waypoints);
         }
 
         char turnClockWise() {
@@ -258,37 +202,18 @@ public class Day16_1_2_loop {
 
         private boolean isValid(Node node) {
             return OBSTACLE != map.get(node.y).get(node.x);
-            //return node.direction == direction;
-            //return true;
         }
 
         void initNodes(Node node) {
-           /* System.out.printf("%nnext to [%dx%d]=%s ---> [%dx%d]=%s%n, score=%d", this.y, this.x, this.direction, node.y,
-                    node.x, node.direction, node.score);*/
             node.waypoints.add(node);
-            //System.out.println("way : " + node.waypoints);
             visited.add(node);
-            /*if (map.get(node.y).get(node.x) != 'E') {
+            if (map.get(node.y).get(node.x) != 'E') {
                 node.forward();
                 node.clockWise();
                 node.counterClockWise();
                 //node.maintainPerimeter();
             } else if (map.get(node.y).get(node.x) == 'E') {
                 node.direction = 'E';
-                scoreboard.add(node);
-            }*/
-            if (map.get(node.y).get(node.x) != 'E' && scoreCache.get(node) == null) {
-                node.forward();
-                node.clockWise();
-                node.counterClockWise();
-                node.maintainPerimeter();
-            } else if (scoreCache.get(node) != null) {
-                node.found= true;
-                node.score+=scoreCache.get(node);
-                scoreboard.add(node);
-            } else if (map.get(node.y).get(node.x) == 'E') {
-                node.direction = 'E';
-                node.found = true;
                 scoreboard.add(node);
             }
         }
@@ -303,91 +228,6 @@ public class Day16_1_2_loop {
                     || (DOWN == node.direction && node.waypoints.contains(node.nodeKey(node.y, node.x, UP)))
                     || (LEFT == node.direction && node.waypoints.contains(node.nodeKey(node.y, node.x, RIGHT)))
                     || (RIGHT == node.direction && node.waypoints.contains(node.nodeKey(node.y, node.x, LEFT)));
-        }
-
-        private void maintainPerimeter() {
-            if(forward != null && forward.found) {
-                this.backwardScore+=forward.backwardScore+1;
-                this.found = true;
-            } else if (clockWise != null && clockWise.found) {
-                this.backwardScore+=clockWise.backwardScore+1000+1;
-                this.found = true;
-            } else if (counterClockWise != null && counterClockWise.found) {
-                this.backwardScore+=counterClockWise.backwardScore+1000+1;
-                this.found = true;
-            }
-            if(this.found) {
-                System.out.println("scoreCache : " + scoreCache);
-                scoreCache.put(this, this.backwardScore);
-            }
-        }
-
-        /*private void maintainPerimeter() {
-            Node up = creteNewNode(this.row + 1, this.col, score, direction, waypoints);
-            if (isSimplyInRange(up)) {
-                up.direction = rows.get(up.row).get(up.col);
-                if (isValid(up)) {
-                    //this.perimeter--;
-                }
-            }
-            Node down = creteNewNode(this.row - 1, this.col, direction, waypoints);
-            if (isSimplyInRange(down)) {
-                down.direction = rows.get(down.row).get(down.col);
-                if (isValid(down)) {
-                    //    this.perimeter--;
-                }
-            }
-            Node left = creteNewNode(this.row, this.col - 1, direction, waypoints);
-            if (isSimplyInRange(left)) {
-                left.direction = rows.get(left.row).get(left.col);
-                if (isValid(left)) {
-                    //    this.perimeter--;
-                }
-            }
-            Node right = creteNewNode(this.row, this.col + 1, direction, waypoints);
-            if (isSimplyInRange(right)) {
-                right.direction = rows.get(right.row).get(right.col);
-                if (isValid(right)) {
-                    //    this.perimeter--;
-                }
-            }
-            //System.out.println("Perimeter of [%dx%d] = %d".formatted(this.row, this.col, this.perimeter));
-        }*/
-
-        /*private void maintainPerimeter(Node node) {
-            Node up = creteNewNode(node.row + 1, node.col, waypoints);
-            if (isSimplyInRange(up)) {
-                up.direction = rows.get(up.row).get(up.col);
-                if(isValid(up)) {
-                    node.perimeter--;
-                }
-            }
-            Node down = creteNewNode(node.row - 1, node.col, waypoints);
-            if (isSimplyInRange(down)) {
-                down.direction = rows.get(down.row).get(down.col);
-                if (isValid(down)) {
-                    node.perimeter--;
-                }
-            }
-            Node left = creteNewNode(node.row , node.col-1, waypoints);
-            if (isSimplyInRange(left)) {
-                left.direction = rows.get(left.row).get(left.col);
-                if (isValid(left)) {
-                    node.perimeter--;
-                }
-            }
-            Node right = creteNewNode(node.row , node.col+1, waypoints);
-            if (isSimplyInRange(right)) {
-                right.direction = rows.get(right.row).get(right.col);
-                if (isValid(right)) {
-                    node.perimeter--;
-                }
-            }
-            //System.out.println("Perimeter of [%dx%d] = %d".formatted(node.row, node.col, node.perimeter));
-        }*/
-
-        boolean isSimplyInRange(Node node) {
-            return node.y >= 0 && node.y < map.size() && node.x >= 0 && node.x < map.getFirst().size();
         }
 
     }
@@ -414,7 +254,6 @@ public class Day16_1_2_loop {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp.txt")))) {
                 new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp_1.txt")))) {
             this.map = new ArrayList<>();
-            this.scoreCache = new HashMap<>();
             String line = null;
             while ((line = br.readLine()) != null) {
                 List<Character> xRow = new ArrayList<>();

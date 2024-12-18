@@ -4,10 +4,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Deque;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,7 +17,7 @@ import java.util.Set;
 
 import com.adventofcode.utils.FileUtils;
 
-public class Day16_1_3_graph {
+public class Day16_1_3_GraphApproach {
 
     protected static final char UP = '^';
     protected static final char RIGHT = '>';
@@ -37,19 +35,19 @@ public class Day16_1_3_graph {
     protected int MAP_HEIGHT;
 
     public static void main(String[] args) throws Exception {
-        new Day16_1_3_graph().count();
-        // answer 364280 is too high
+        new Day16_1_3_GraphApproach().count();
+        // doesn't work so far
     }
 
     protected void count() throws Exception {
         loadMap();
         printMap();
-        //System.out.println("answer = " + searchBSF('E', cursor).get());
-        //System.out.println(findAllPaths(cursor, target));
-        findAllPaths(cursor, target).forEach(this::printPath);
+        System.out.println("answer = " + searchBSF('E', cursor).get());
+        //System.out.println("answer = " + findAllPaths(cursor, target).size());
+        //findAllPaths(cursor, target).forEach(this::printPath);
     }
 
-    private void printPath(List<Node> nodes) {
+    private void printPath(Collection<Node> nodes) {
         StringBuilder sb = new StringBuilder();
         sb.append("HERE WE GO : ");
         for(Node node : nodes) {
@@ -59,30 +57,30 @@ public class Day16_1_3_graph {
         System.out.println(sb);
     }
 
-    public static List<List<Node>> findAllPaths(Node start, Node target) {
-        List<List<Node>> allPaths = new ArrayList<>(); // To store all possible paths
-        Queue<List<Node>> queue = new LinkedList<>();  // BFS Queue to track paths
+    public static List<LinkedHashSet<Node>> findAllPaths(Node start, Node target) {
+        List<LinkedHashSet<Node>> allPaths = new ArrayList<>(); // To store all possible paths
+        Queue<LinkedHashSet<Node>> queue = new LinkedList<>();  // BFS Queue to track paths
 
         // Initialize BFS with the start node
-        List<Node> initialPath = new ArrayList<>();
+        LinkedHashSet<Node> initialPath = new LinkedHashSet<>();
         initialPath.add(start);
         queue.add(initialPath);
 
         while (!queue.isEmpty()) {
             // Get the current path from the queue
-            List<Node> currentPath = queue.poll();
-            Node lastNode = currentPath.get(currentPath.size() - 1);
+            LinkedHashSet<Node> currentPath = queue.poll();
+            Node lastNode = currentPath.getLast();
 
             // If we reached the target node, add this path to the results
             if (lastNode.equals(target)) {
-                allPaths.add(new ArrayList<>(currentPath));
+                allPaths.add(new LinkedHashSet<>(currentPath));
                 continue;
             }
 
             // Explore the neighbors of the last node
             for (Node neighbor : lastNode.nodes) {
                 if (!currentPath.contains(neighbor)) { // Avoid cycles
-                    List<Node> newPath = new ArrayList<>(currentPath);
+                    LinkedHashSet<Node> newPath = new LinkedHashSet<>(currentPath);
                     newPath.add(neighbor);
                     queue.add(newPath);
                 }
@@ -96,7 +94,7 @@ public class Day16_1_3_graph {
         Queue<Node> queue = new ArrayDeque<>();
         queue.add(start);
         Node currentNode;
-        Set<Node> alreadyVisited = new HashSet<>();
+        LinkedHashSet<Node> alreadyVisited = new LinkedHashSet<>();
         List<Optional<Node>> retVal = new ArrayList<>();
         while (!queue.isEmpty()) {
             currentNode = queue.remove();
@@ -111,6 +109,7 @@ public class Day16_1_3_graph {
             }
         }
         System.out.println("variant : " + retVal.size());
+        printPath(alreadyVisited);
         //return Optional.empty();
         return retVal.size()> 0 ? retVal.get(0) : Optional.empty();
     }
@@ -123,6 +122,21 @@ public class Day16_1_3_graph {
         boolean marked;
 
         List<Node> nodes;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            Node node = (Node) o;
+            return y == node.y && x == node.x && value == node.value;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(y, x, value);
+        }
 
         @Override
         public String toString() {
@@ -272,8 +286,8 @@ public class Day16_1_3_graph {
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.txt")))) {
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp.txt")))) {
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp_1.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp_1.txt")))) {
             this.map = new HashMap<>();
             String line = null;
             int y = 0;
