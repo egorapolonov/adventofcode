@@ -138,10 +138,7 @@ public class Day16_1_BackwardScoreApproach {
             this.x = x;
             this.direction = map.get(this.y).get(this.x);
             this.waypoints = new LinkedHashSet<>();
-            this.waypoints.add(this);
-            forward();
-            clockWise();
-            counterClockWise();
+            initNodes(this);
             //maintainPerimeter();
         }
 
@@ -244,9 +241,8 @@ public class Day16_1_BackwardScoreApproach {
             visited.add(node);
             if (map.get(node.y).get(node.x) != 'E' && scoreCache.get(node) == null) {
                 node.forward();
-                node.clockWise();
                 node.counterClockWise();
-                //node.maintainPerimeter();
+                node.clockWise();
             } else if (scoreCache.get(node) != null) {
                 node.found = true;
                 node.score += scoreCache.get(node);
@@ -270,23 +266,6 @@ public class Day16_1_BackwardScoreApproach {
                     DOWN == node.direction && node.waypoints.contains(node.nodeKey(node.y, node.x, UP))) || (
                            LEFT == node.direction && node.waypoints.contains(node.nodeKey(node.y, node.x, RIGHT))) || (
                            RIGHT == node.direction && node.waypoints.contains(node.nodeKey(node.y, node.x, LEFT)));
-        }
-
-        private void maintainPerimeter() {
-            if (forward != null && forward.found) {
-                this.backwardScore += forward.backwardScore + 1;
-                this.found = true;
-            } else if (clockWise != null && clockWise.found) {
-                this.backwardScore += clockWise.backwardScore + 1000 + 1;
-                this.found = true;
-            } else if (counterClockWise != null && counterClockWise.found) {
-                this.backwardScore += counterClockWise.backwardScore + 1000 + 1;
-                this.found = true;
-            }
-            if (this.found) {
-                System.out.println("scoreCache : " + scoreCache);
-                scoreCache.put(this, this.backwardScore);
-            }
         }
 
     }

@@ -27,6 +27,11 @@ public class Day16_1_ForwardScoreApproach {
     public static void main(String[] args) throws Exception {
         new Day16_1_ForwardScoreApproach().count();
         // fails by StackOverflow on full set
+        // 410216 too high
+        // 364280 too high
+        // 294024 - shoudl be too high
+        // 237764 - too high as well
+        // 229852 - incorrect
     }
 
     protected void count() throws Exception {
