@@ -142,7 +142,7 @@ public class Day16_1_BackwardScoreApproach {
             forward();
             clockWise();
             counterClockWise();
-            maintainPerimeter();
+            //maintainPerimeter();
         }
 
         void forward() {
@@ -153,6 +153,45 @@ public class Day16_1_BackwardScoreApproach {
                 case LEFT -> createNodeIfValid(y, x - 1, score + 1, LEFT, waypoints);
                 default -> null;
             };
+            if (this.forward != null && this.forward.found) {
+                this.backwardScore+= forward.backwardScore+1;
+                scoreCache.put(this.forward, this.forward.backwardScore);
+                System.out.println("scoreCache forward : " + scoreCache);
+                this.found = true;
+            }
+        }
+
+        void clockWise() {
+            Node node = clockWiseForwardNode();
+            Node validNode = null;
+            if (node != null && isInRange(node)) {
+                node.direction = direction;
+                validNode = getIfValid(node);
+            }
+            this.clockWise = validNode;
+            if (this.clockWise != null && this.clockWise.found) {
+                this.backwardScore+= clockWise.backwardScore+1000;
+                scoreCache.put(this.clockWise, this.clockWise.backwardScore);
+                System.out.println("scoreCache clockWise : " + scoreCache);
+                this.found = true;
+            }
+        }
+
+        void counterClockWise() {
+            Node node = counterClockWiseForwardNode();
+            Node validNode = null;
+            if (node != null && isInRange(node)) {
+                node.direction = direction;
+                validNode = getIfValid(node);
+            }
+            this.counterClockWise = validNode;
+            if (this.counterClockWise != null && this.counterClockWise.found) {
+                this.counterClockWise.backwardScore+=1000;
+                this.backwardScore+= counterClockWise.backwardScore;
+                scoreCache.put(this.counterClockWise, this.counterClockWise.backwardScore);
+                System.out.println("scoreCache counterClockWise : " + scoreCache);
+                this.found = true;
+            }
         }
 
         Node clockWiseForwardNode() {
@@ -173,26 +212,6 @@ public class Day16_1_BackwardScoreApproach {
                 case LEFT -> createNodeIfValid(y + 1, x, score + 1001, DOWN, waypoints);
                 default -> null;
             };
-        }
-
-        void clockWise() {
-            Node node = clockWiseForwardNode();
-            Node validNode = null;
-            if (node != null && isInRange(node)) {
-                node.direction = direction;
-                validNode = getIfValid(node);
-            }
-            this.clockWise = validNode;
-        }
-
-        void counterClockWise() {
-            Node node = counterClockWiseForwardNode();
-            Node validNode = null;
-            if (node != null && isInRange(node)) {
-                node.direction = direction;
-                validNode = getIfValid(node);
-            }
-            this.clockWise = validNode;
         }
 
         private Node createNodeIfValid(int y, int x, long score, char direction, LinkedHashSet<Node> waypoints) {
@@ -227,7 +246,7 @@ public class Day16_1_BackwardScoreApproach {
                 node.forward();
                 node.clockWise();
                 node.counterClockWise();
-                node.maintainPerimeter();
+                //node.maintainPerimeter();
             } else if (scoreCache.get(node) != null) {
                 node.found = true;
                 node.score += scoreCache.get(node);
@@ -290,9 +309,9 @@ public class Day16_1_BackwardScoreApproach {
 
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
-                //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.txt")))) {
+                new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp.txt")))) {
-                new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp_1.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp_1.txt")))) {
             this.map = new ArrayList<>();
             this.scoreCache = new HashMap<>();
             String line = null;
