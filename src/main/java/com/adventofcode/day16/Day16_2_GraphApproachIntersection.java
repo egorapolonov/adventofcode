@@ -51,6 +51,7 @@ public class Day16_2_GraphApproachIntersection {
         System.out.println("forward endNodes = " + forward.endNodes);
         BsfResult backward = bsfBackward(forward);
         System.out.println("backward = " + backward.score);
+        System.out.println("backward endNodes = " + backward.endNodes);
         matchMaps(forward, backward);
     }
 
@@ -58,6 +59,7 @@ public class Day16_2_GraphApproachIntersection {
         BsfResult backward = null;
         for (var direction : forward.endNodes.stream().map(n -> n.value).toList()) {
             target.value = flip(direction);
+            start.value = flip(start.value);
             System.out.println("flip = " + target.value);
             backward = bsfMinScore(target, start, true);
             if (backward.score.equals(forward.score)) {
@@ -107,7 +109,6 @@ public class Day16_2_GraphApproachIntersection {
         queue.add(start);
         while (!queue.isEmpty()) {
             Node current = queue.poll();
-
             if (current.x == target.x && current.y == target.y) {
                 if(matchDirection) {
                     if(current.value == target.value) {
