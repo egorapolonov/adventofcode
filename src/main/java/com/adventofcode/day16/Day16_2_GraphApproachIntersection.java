@@ -46,7 +46,7 @@ public class Day16_2_GraphApproachIntersection {
     protected void count() throws Exception {
         loadMap();
         printCharMap();
-        BsfResult forward = bsfMinScore(start, target, false);
+        BsfResult forward = bsfMinScore(new Node(start), new Node(target), false);
         System.out.println("forward = " + forward.score);
         System.out.println("forward endNodes = " + forward.endNodes);
         BsfResult backward = bsfBackward(forward);
@@ -58,6 +58,8 @@ public class Day16_2_GraphApproachIntersection {
     private BsfResult bsfBackward(BsfResult forward) {
         BsfResult backward = null;
         for (var direction : forward.endNodes.stream().map(n -> n.value).toList()) {
+            Node target = new Node(this.target);
+            Node start = new Node(this.start);
             target.value = flip(direction);
             start.value = flip(start.value);
             System.out.println("flip = " + target.value);
@@ -236,6 +238,14 @@ public class Day16_2_GraphApproachIntersection {
             return "Node{" + "y=" + y + ", x=" + x + ",value=" + value + ", score=" + score + nodesStr + '}';
         }
 
+        // just clone
+        public Node(Node node) {
+            this.y = node.y;
+            this.x = node.x;
+            this.value = node.value;
+            this.nodes = new ArrayList<>();
+        }
+
         public Node(Node node, long score, char value) {
             this.y = node.y;
             this.x = node.x;
@@ -410,10 +420,10 @@ public class Day16_2_GraphApproachIntersection {
                         Node node = new Node(y, x, ch);
                         if ('S' == ch) {
                             node.value = RIGHT;
-                            start = node;
+                            start = new Node(node);
                         }
                         if ('E' == ch) {
-                            target = node;
+                            target = new Node(node);
                         }
                         xRow.put(x, node);
                     }
