@@ -40,7 +40,7 @@ public class Day16_2_GraphApproachCached {
 
     public static void main(String[] args) throws Exception {
         new Day16_2_GraphApproachCached().count();
-         // 670 is correct
+         // 670 is correct (takes 8 minutes to calculate)
     }
 
     protected void count() throws Exception {
