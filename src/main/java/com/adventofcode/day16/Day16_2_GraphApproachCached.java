@@ -48,9 +48,9 @@ public class Day16_2_GraphApproachCached {
         printCharMap();
         Map<Node, Long> beforeCache = new HashMap<>();
         Map<Node, Long> afterCache = new HashMap<>();
-        Long minScore = bsfMinScore(start, target, false, beforeCache, false);
+        Long minScore = bfsMinScore(start, target, false, beforeCache, false);
         System.out.println("minScore = " + minScore);
-        LinkedHashSet<Node> visited = bsfMinScoreVisited(start, target);
+        LinkedHashSet<Node> visited = bfsMinScoreVisited(start, target);
         List<Node> visitedSortedList = new ArrayList<>(visited);
         visitedSortedList.sort(Comparator.comparingLong(n -> n.y));
         Map<Long, Set<Tile>> scoreBoard = new HashMap<>();
@@ -70,14 +70,14 @@ public class Day16_2_GraphApproachCached {
             }
 
             Node newStart = new Node(tile.y, tile.x, tile.value);
-            Long minScoreE = bsfMinScore(newStart, target, false, afterCache, true);
+            Long minScoreE = bfsMinScore(newStart, target, false, afterCache, true);
 
             if(minScoreE == null || minScoreE > minScore) {
                 System.out.println("Skip by minScoreE : " + tile );
                 currentTile++;
                 continue;
             }
-            Long minScoreS = bsfMinScore(start, tile, true, beforeCache, false);
+            Long minScoreS = bfsMinScore(start, tile, true, beforeCache, false);
 
             if (minScoreS != null && minScoreE != null) {
                 long totalScore = minScoreS + minScoreE;
@@ -103,7 +103,7 @@ public class Day16_2_GraphApproachCached {
         }
     }
 
-    protected LinkedHashSet<Node> bsfMinScoreVisited(Node start, Node target) {
+    protected LinkedHashSet<Node> bfsMinScoreVisited(Node start, Node target) {
         //PriorityQueue<Node> queue = new PriorityQueue<>();
         LinkedList<Node> queue = new LinkedList<>();
         LinkedHashSet<Node> visited = new LinkedHashSet<>();
@@ -142,7 +142,7 @@ public class Day16_2_GraphApproachCached {
         return visited;
     }
 
-    protected Long bsfMinScore(Node start, Node target, boolean matchDirection, Map<Node, Long> cache, boolean useCache) {
+    protected Long bfsMinScore(Node start, Node target, boolean matchDirection, Map<Node, Long> cache, boolean useCache) {
         //PriorityQueue<Node> queue = new PriorityQueue<>();
         LinkedList<Node> queue = new LinkedList<>();
         LinkedHashSet<Node> visited = new LinkedHashSet<>();

@@ -46,9 +46,9 @@ public class Day16_2_1_GraphApproach {
     protected void count() throws Exception {
         loadMap();
         printCharMap();
-        //System.out.println("answer = " + bsfMinScore(cursor, target));
-        long minScore = bsfMinScore(start, target);
-        LinkedHashSet<Node> visited = bsfMinScoreVisited(start, target);
+        //System.out.println("answer = " + bfsMinScore(cursor, target));
+        long minScore = bfsMinScore(start, target);
+        LinkedHashSet<Node> visited = bfsMinScoreVisited(start, target);
         Map<Long, Set<Tile>> scoreBoard = new HashMap<>();
         int totalTiles = visited.size();
         long currentTile = 0;
@@ -61,7 +61,7 @@ public class Day16_2_1_GraphApproach {
                 //System.out.println("Skip by tile score : " + tile );
                 continue;
             }
-            Long minScoreE = bsfMinScore(newStart, target);
+            Long minScoreE = bfsMinScore(newStart, target);
 
             if(minScoreE == null || minScoreE >= minScore) {
                 //System.out.println("Skip by minScoreE : " + tile );
@@ -84,7 +84,7 @@ public class Day16_2_1_GraphApproach {
         System.out.println("answer = " + (scoreBoard.get(minScore).size() + 1));
     }
 
-    protected LinkedHashSet<Node> bsfMinScoreVisited(Node start, Node target) {
+    protected LinkedHashSet<Node> bfsMinScoreVisited(Node start, Node target) {
         //PriorityQueue<Node> queue = new PriorityQueue<>();
         LinkedList<Node> queue = new LinkedList<>();
         LinkedHashSet<Node> visited = new LinkedHashSet<>();
@@ -122,7 +122,7 @@ public class Day16_2_1_GraphApproach {
         return visited;
     }
 
-    protected Long bsfMinScore(Node start, Node target) {
+    protected Long bfsMinScore(Node start, Node target) {
         //PriorityQueue<Node> queue = new PriorityQueue<>();
         LinkedList<Node> queue = new LinkedList<>();
         LinkedHashSet<Node> visited = new LinkedHashSet<>();

@@ -47,9 +47,9 @@ public class Day16_2_GraphApproach {
     protected void count() throws Exception {
         loadMap();
         printCharMap();
-        Long minScore = bsfMinScore(start, target, false);
+        Long minScore = bfsMinScore(start, target, false);
         System.out.println("answer = " + minScore);
-        LinkedHashSet<Node> visited = bsfMinScoreVisited(start, target);
+        LinkedHashSet<Node> visited = bfsMinScoreVisited(start, target);
         Map<Long, Set<Tile>> scoreBoard = new HashMap<>();
         int totalTiles = visited.size();
         long currentTile = 0;
@@ -67,14 +67,14 @@ public class Day16_2_GraphApproach {
             }
 
             Node newStart = new Node(tile.y, tile.x, tile.value);
-            Long minScoreE = bsfMinScore(newStart, target, false);
+            Long minScoreE = bfsMinScore(newStart, target, false);
 
             if(minScoreE == null || minScoreE >= minScore) {
                 //System.out.println("Skip by minScoreE : " + tile );
                 currentTile++;
                 continue;
             }
-            Long minScoreS = bsfMinScore(start, tile, true);
+            Long minScoreS = bfsMinScore(start, tile, true);
 
             if (minScoreS != null && minScoreE != null) {
                 long totalScore = minScoreS + minScoreE;
@@ -105,7 +105,7 @@ public class Day16_2_GraphApproach {
         }*/
     }
 
-    protected LinkedHashSet<Node> bsfMinScoreVisited(Node start, Node target) {
+    protected LinkedHashSet<Node> bfsMinScoreVisited(Node start, Node target) {
         //PriorityQueue<Node> queue = new PriorityQueue<>();
         LinkedList<Node> queue = new LinkedList<>();
         LinkedHashSet<Node> visited = new LinkedHashSet<>();
@@ -144,7 +144,7 @@ public class Day16_2_GraphApproach {
         return visited;
     }
 
-    protected Long bsfMinScore(Node start, Node target, boolean matchDirection) {
+    protected Long bfsMinScore(Node start, Node target, boolean matchDirection) {
         //PriorityQueue<Node> queue = new PriorityQueue<>();
         LinkedList<Node> queue = new LinkedList<>();
         LinkedHashSet<Node> visited = new LinkedHashSet<>();

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 
@@ -47,10 +46,10 @@ public class Day16_1_3_GraphApproach {
     protected void count() throws Exception {
         loadMap();
         printCharMap();
-        System.out.println("answer = " + bsfMinScore(cursor, target));
+        System.out.println("answer = " + bfsMinScore(cursor, target));
     }
 
-    protected long bsfMinScore(Node start, Node target) {
+    protected long bfsMinScore(Node start, Node target) {
         //PriorityQueue<Node> queue = new PriorityQueue<>();
         LinkedList<Node> queue = new LinkedList<>();
         LinkedHashSet<Node> visited = new LinkedHashSet<>();
@@ -122,7 +121,7 @@ public class Day16_1_3_GraphApproach {
         return allPaths;
     }
 
-    protected Optional<Node> searchBSF(char value, Node start) {
+    protected Optional<Node> searchBFS(char value, Node start) {
         Queue<Node> queue = new ArrayDeque<>();
         queue.add(start);
         Node currentNode;

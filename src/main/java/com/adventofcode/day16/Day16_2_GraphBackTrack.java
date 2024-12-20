@@ -4,20 +4,19 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.adventofcode.utils.FileUtils;
 
-public class Day16_2_GraphApproachIntersection {
+public class Day16_2_GraphBackTrack {
 
     protected static final char UP = '^';
     protected static final char RIGHT = '>';
@@ -38,7 +37,7 @@ public class Day16_2_GraphApproachIntersection {
             List.of(0, -1), RIGHT, List.of(0, 1), DOT, List.of(0, 0), E, List.of(0, 0));
 
     public static void main(String[] args) throws Exception {
-        new Day16_2_GraphApproachIntersection().count();
+        new Day16_2_GraphBackTrack().count();
         // 668 on big set. The right answer if 670. But works with small examples
     }
 
@@ -46,96 +45,43 @@ public class Day16_2_GraphApproachIntersection {
     protected void count() throws Exception {
         loadMap();
         printCharMap();
-        BfsResult forward = bfsMinScore(new Node(start), new Node(target), false);
-        System.out.println("forward = " + forward.score);
-        System.out.println("forward endNodes = " + forward.endNodes);
-        BfsResult backward = bfsBackward(forward);
-        System.out.println("backward = " + backward.score);
-        System.out.println("backward endNodes = " + backward.endNodes);
-        matchMaps(forward, backward);
+        BfsResult forward = bfsMinScore(new Node(start), new Node(target));
+        System.out.println("score = " + forward.score);
+        System.out.println("tiles = " + forward.tiles.size());
     }
 
-    private BfsResult bfsBackward(BfsResult forward) {
-        BfsResult backward = null;
-        for (var direction : forward.endNodes.stream().map(n -> n.value).toList()) {
-            Node target = new Node(this.target);
-            Node start = new Node(this.start);
-            target.value = flip(direction);
-            start.value = flip(start.value);
-            System.out.println("flip = " + target.value);
-            backward = bfsMinScore(target, start, true);
-            if (backward.score.equals(forward.score)) {
-                System.out.println("backward direction found : " + direction);
-                break;
-            }
-        }
-        return backward;
-    }
-
-    private void matchMaps(BfsResult forward, BfsResult backward) {
-        long minScore = forward.score;
-        Set<Tile> tiles = new LinkedHashSet<>();
-        for (var forwarEntry : forward.visited.entrySet()) {
-            Node forwardNode = forwarEntry.getKey();
-            char tmp = forwardNode.value;
-            forwardNode.value = flip(forwardNode.value);
-            Node backwarNode = backward.visited.get(forwardNode);
-            if (backwarNode != null) {
-                if ((forwardNode.score + backwarNode.score == minScore)) {
-                    tiles.add(new Tile(forwardNode));
-                }
-            }
-            forwardNode.value = tmp;
-        }
-        System.out.println("Tiles : " + (tiles.size()));
-    }
-
-    char flip(char value) {
-        char turn = switch (value) {
-            case UP -> DOWN;
-            case RIGHT -> LEFT;
-            case DOWN -> UP;
-            case LEFT -> RIGHT;
-            default -> value;
-        };
-        return turn;
-    }
-
-    protected BfsResult bfsMinScore(Node start, Node target, boolean matchDirection) {
-        //PriorityQueue<Node> queue = new PriorityQueue<>();
+    protected BfsResult bfsMinScore(Node start, Node target) {
         LinkedList<Node> queue = new LinkedList<>();
         Map<Node, Node> visited = new HashMap<>();
-        Set<Character> ends = new HashSet<>();
-        Set<Node> endNodes = new HashSet<>();
-        List<Long> result = new ArrayList<>();
+        Set<Node> tileNodes = new HashSet<>();
+        Node minScoreNode = null;
         queue.add(start);
         while (!queue.isEmpty()) {
             Node current = queue.poll();
             if (current.x == target.x && current.y == target.y) {
-                if(matchDirection) {
-                    if(current.value == target.value) {
-                        ends.add(current.value);
-                        endNodes.add(current);
-                        result.add(current.score);
-                    }
-                } else {
-                    //System.out.println("Found : " + current);
-                    ends.add(current.value);
-                    endNodes.add(current);
-                    result.add(current.score);
+                if (visited.get(target) == null || visited.get(target).score > current.score) {
+                    visited.put(target, current);
+                    tileNodes.clear();
+                    tileNodes.add(current);
+                    minScoreNode = current;
+                }
+                if (current.score == visited.get(target).score) {
+                    tileNodes.addAll(current.visited.keySet());
+                    tileNodes.add(current);
                 }
             }
 
-            if (visited.containsKey(current)) {
+            if (visited.containsKey(current) && visited.get(current).score < current.score) {
                 continue;
             }
 
             visited.put(current, current);
+            current.visited.put(current, current.score);
 
             Node forward = current.forward();
             if (forward != null) {
                 // queue.add(forward); | This approach you can use if you operate with PriorityQueue<Node> queue = new PriorityQueue<>();
-                queue.addFirst(forward); // this element will have the samllest score
+                queue.addFirst(forward); // this element will have the smallest score
             }
             Node clockWise = current.clockWise();
             if (clockWise != null) {
@@ -147,23 +93,18 @@ public class Day16_2_GraphApproachIntersection {
             }
 
         }
-        Long score = result.stream().min(Comparator.comparingLong(Long::longValue)).orElse(null);
-        endNodes.removeIf(n -> !score.equals(n.score));
-        return new BfsResult(visited, score, ends, endNodes);
+        BfsResult retVal = new BfsResult(minScoreNode.score, tileNodes.stream().map(Tile::new).collect(Collectors.toSet()));
+        return retVal;
     }
 
     private class BfsResult {
 
-        Map<Node, Node> visited;
         Long score;
-        Set<Character> ends;
-        Set<Node> endNodes;
+        Set<Tile> tiles;
 
-        public BfsResult(Map<Node, Node> visited, Long score, Set<Character> ends, Set<Node> endNodes) {
-            this.visited = visited;
+        public BfsResult(Long score, Set<Tile> tiles) {
             this.score = score;
-            this.ends = ends;
-            this.endNodes = endNodes;
+            this.tiles = tiles;
         }
     }
 
@@ -207,6 +148,7 @@ public class Day16_2_GraphApproachIntersection {
         long score;
 
         List<Node> nodes;
+        Map<Node, Long> visited;
 
         @Override
         public boolean equals(Object o) {
@@ -244,6 +186,7 @@ public class Day16_2_GraphApproachIntersection {
             this.x = node.x;
             this.value = node.value;
             this.nodes = new ArrayList<>();
+            this.visited = new HashMap<>();
         }
 
         public Node(Node node, long score, char value) {
@@ -261,11 +204,12 @@ public class Day16_2_GraphApproachIntersection {
             this.nodes = new ArrayList<>();
         }
 
-        public Node(int y, int x, char value, long score) {
+        public Node(int y, int x, char value, long score, Map<Node, Long> visited) {
             this.y = y;
             this.x = x;
             this.value = value;
             this.score = score;
+            this.visited = new HashMap<>(visited);
         }
 
         public List<Node> getNodes() {
@@ -291,7 +235,7 @@ public class Day16_2_GraphApproachIntersection {
 
         Node forward() {
             List<Integer> dydx = deltas.get(value);
-            Node node = new Node(y + dydx.get(0), x + dydx.get(1), value, this.score + 1);
+            Node node = new Node(y + dydx.get(0), x + dydx.get(1), value, this.score + 1, visited);
             if (thereIsTheWay(node)) {
                 return node;
             }
@@ -300,12 +244,12 @@ public class Day16_2_GraphApproachIntersection {
 
         Node clockWise() {
             char clockWiseValue = turnClockWise(value);
-            return new Node(y, x, clockWiseValue, this.score + 1000);
+            return new Node(y, x, clockWiseValue, this.score + 1000, visited);
         }
 
         Node counterClockWise() {
             char counterClockWiseValue = turnCounterClockWise(value);
-            return new Node(y, x, counterClockWiseValue, this.score + 1000);
+            return new Node(y, x, counterClockWiseValue, this.score + 1000, visited);
         }
 
         char turnClockWise(char value) {
@@ -401,8 +345,8 @@ public class Day16_2_GraphApproachIntersection {
     protected void loadMap() throws Exception {
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.txt")))) {
-            //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp.txt")))) {
-            //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp_1.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day16_1.tmp_1.txt")))) {
             this.map = new HashMap<>();
             this.charMap = new HashMap<>();
             String line = null;
