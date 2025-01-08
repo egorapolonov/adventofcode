@@ -2,14 +2,15 @@ package com.adventofcode.day17;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.adventofcode.utils.FileUtils;
 
 public class Day17_1 {
 
-    protected static final char SPACE = '.';
     protected ProgramInfo map;
 
     public static void main(String[] args) throws Exception {
@@ -24,16 +25,16 @@ public class Day17_1 {
         printMap();
     }
 
-    private static class ProgramInfo {
+    protected static class ProgramInfo {
         long regA;
         long regB;
         long regC;
         int[] prog;
-        StringBuilder out = new StringBuilder(0);
-        int instructionPointer = 0;
+        List<Long> out;
+        int instructionPointer;
 
         String run() {
-            out.setLength(0);
+            out = new ArrayList<>();
             instructionPointer = 0;
             while (instructionPointer < prog.length) {
                 calc();
@@ -141,10 +142,7 @@ public class Day17_1 {
         void out(int instruction) {
             long instructionValue = instructionValue(instruction);
             long value = instructionValue % 8;
-            if(this.out.length() > 0) {
-                this.out.append(",");
-            }
-            this.out.append(value);
+            this.out.add(value);
             System.out.println(value);
             movePointer();
         }
@@ -183,6 +181,15 @@ public class Day17_1 {
             return "ProgramInfo{" + "regA=" + regA + ", regB=" + regB + ", regC=" + regC + ", prog=" + Arrays.toString(
                     prog) + ", out=" + out + ", instructionPointer=" + instructionPointer + '}';
         }
+        
+         ProgramInfo copy() {
+            ProgramInfo retVal = new ProgramInfo();
+            retVal.regA = this.regA;
+            retVal.regB = this.regB;
+            retVal.regC = this.regC;
+            retVal.prog = Arrays.copyOf(this.prog, prog.length);
+            return retVal;
+        }
     }
 
     protected void printMap() {
@@ -196,6 +203,7 @@ public class Day17_1 {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day17_1_3_tmp.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day17_1_4_tmp.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day17_1_5_tmp.txt")))) {
+                //new InputStreamReader(FileUtils.resourceFileToInputStream("day17_1_6_tmp.txt")))) {
                 //new InputStreamReader(FileUtils.resourceFileToInputStream("day17_1_tmp.txt")))) {
                 new InputStreamReader(FileUtils.resourceFileToInputStream("day17_1.txt")))) {
             String line = null;
